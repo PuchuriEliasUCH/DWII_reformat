@@ -1,0 +1,84 @@
+@model AltaMesa.web.Models.ViewModels.DashboardVM
+
+@{
+    ViewBag.Title = "Dashboard";
+}
+
+<h2 class="mb-4">Dashboard</h2>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h3 class="text-primary mb-0">@Model.MesasOcupadas</h3>
+                <p class="text-muted mb-0">Mesas Ocupadas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h3 class="text-success mb-0">@Model.MesasDisponibles</h3>
+                <p class="text-muted mb-0">Mesas Disponibles</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h3 class="text-warning mb-0">@Model.PedidosActivos</h3>
+                <p class="text-muted mb-0">Pedidos Activos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h3 class="text-info mb-0">@Model.ProductosPendientes</h3>
+                <p class="text-muted mb-0">Productos Pendientes</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Últimos Pedidos</h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Mesa</th>
+                    <th>Mesero</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.UltimosPedidos.Any())
+                {
+                    foreach (var p in Model.UltimosPedidos)
+                    {
+                        <tr>
+                            <td>@p.IdPedido</td>
+                            <td>Mesa @p.NumeroMesa</td>
+                            <td>@p.NombreMesero</td>
+                            <td>$@p.Total.ToString("N2")</td>
+                            <td><span class="badge bg-warning text-dark">@p.Estado</span></td>
+                            <td>@p.FechaPedido.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No hay pedidos activos</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - AltaMesa</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    <style>
+        body {
+            background-color: #fff8f5;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            color: #964319 !important;
+        }
+        .navbar {
+            background-color: #ffffff !important;
+            border-bottom: 1px solid #e6dfd5;
+        }
+        .nav-link {
+            color: #55433b !important;
+        }
+        .nav-link:hover {
+            color: #964319 !important;
+        }
+        .nav-link.active {
+            color: #964319 !important;
+            font-weight: 600;
+        }
+        .sidebar {
+            min-height: calc(100vh - 60px);
+            background: #ffffff;
+            border-right: 1px solid #e6dfd5;
+        }
+        .sidebar .nav-link {
+            border-radius: 0.5rem;
+            margin: 2px 8px;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #fff1e9;
+        }
+        .card {
+            border: 1px solid #e6dfd5;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(58, 49, 43, 0.08);
+        }
+        .card-header {
+            background: #ffffff;
+            border-bottom: 1px solid #e6dfd5;
+        }
+        .btn-primary {
+            background-color: #964319;
+            border-color: #964319;
+        }
+        .btn-primary:hover {
+            background-color: #7b2f04;
+            border-color: #7b2f04;
+        }
+        .btn-success {
+            background-color: #546430;
+            border-color: #546430;
+        }
+        .btn-success:hover {
+            background-color: #3d4c1a;
+            border-color: #3d4c1a;
+        }
+        .table th {
+            color: #7a5500;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+    </style>
+</head>
+<body>
+    @{
+        var usuarioId = Session["UsuarioId"];
+        var usuarioNombre = Session["UsuarioNombre"]?.ToString();
+        var usuarioRol = Session["UsuarioRol"]?.ToString();
+    }
+
+    @if (usuarioId != null)
+    {
+        <div class="d-flex">
+            <div class="sidebar d-none d-md-block" style="width: 220px; flex-shrink: 0;">
+                <div class="p-3 border-bottom">
+                    <h5 class="mb-0" style="color: #964319;">AltaMesa</h5>
+                    <small class="text-muted">@usuarioRol</small>
+                </div>
+                <nav class="mt-2">
+                    <ul class="nav flex-column">
+                        @if (usuarioRol == "Administrador")
+                        {
+                            <li class="nav-item">
+                                @Html.ActionLink("Dashboard", "Index", "Dashboard", new { area = "" }, new { @class = "nav-link" })
+                            </li>
+                        }
+                        <li class="nav-item">
+                            @Html.ActionLink("Pedidos", "Index", "Pedido", new { area = "" }, new { @class = "nav-link" })
+                        </li>
+                        @if (usuarioRol == "Administrador" || usuarioRol == "Mesero")
+                        {
+                            <li class="nav-item">
+                                @Html.ActionLink("Mesas", "Index", "Mesa", new { area = "" }, new { @class = "nav-link" })
+                            </li>
+                        }
+                        @if (usuarioRol == "Administrador")
+                        {
+                            <li class="nav-item">
+                                @Html.ActionLink("Usuarios", "Index", "Usuario", new { area = "" }, new { @class = "nav-link" })
+                            </li>
+                            <li class="nav-item">
+                                @Html.ActionLink("Categorías", "Index", "Categoria", new { area = "" }, new { @class = "nav-link" })
+                            </li>
+                            <li class="nav-item">
+                                @Html.ActionLink("Productos", "Index", "Producto", new { area = "" }, new { @class = "nav-link" })
+                            </li>
+                        }
+                        @if (usuarioRol == "Chef")
+                        {
+                            <li class="nav-item">
+                                @Html.ActionLink("Cocina", "Index", "Cocina", new { area = "" }, new { @class = "nav-link" })
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <nav class="navbar navbar-expand-sm">
+                    <div class="container-fluid">
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navbarNav">
+                            <ul class="navbar-nav ms-auto">
+                                <li class="nav-item d-flex align-items-center">
+                                    <span class="navbar-text me-2">@usuarioNombre</span>
+                                    @using (Html.BeginForm("Logout", "Auth", FormMethod.Post, new { @class = "mb-0" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Cerrar Sesión</button>
+                                    }
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+                <div class="container-fluid p-4">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        @RenderBody()
+    }
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/signalr")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

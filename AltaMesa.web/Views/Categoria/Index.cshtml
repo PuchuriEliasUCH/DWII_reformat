@@ -1,0 +1,74 @@
+@model List<AltaMesa.web.DTOs.CategoriaDTO>
+
+@{
+    ViewBag.Title = "Categorías";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Categorías</h2>
+    <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nueva Categoría</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    foreach (var c in Model)
+                    {
+                        <tr>
+                            <td>@c.IdCategoria</td>
+                            <td>@c.Nombre</td>
+                            <td>@c.Descripcion</td>
+                            <td>
+                                @if (c.Estado)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Editar", new { id = c.IdCategoria })" class="btn btn-sm btn-outline-primary">Editar</a>
+                                @if (c.Estado)
+                                {
+                                    using (Html.BeginForm("Desactivar", "Categoria", new { id = c.IdCategoria }, FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Desactivar esta categoría?')">Desactivar</button>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">No hay categorías registradas</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

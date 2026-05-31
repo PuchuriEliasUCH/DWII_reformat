@@ -1,0 +1,75 @@
+@model AltaMesa.web.Models.ViewModels.UsuarioListaVM
+
+@{
+    ViewBag.Title = "Usuarios";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Usuarios</h2>
+    <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nuevo Usuario</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Usuarios.Any())
+                {
+                    foreach (var u in Model.Usuarios)
+                    {
+                        <tr>
+                            <td>@u.IdUsuario</td>
+                            <td>@u.NombreUsuario</td>
+                            <td>@u.ApellidoUsuario</td>
+                            <td>@u.CorreoUsuario</td>
+                            <td>@u.NombreRol</td>
+                            <td>
+                                @if (u.Estado)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Editar", new { id = u.IdUsuario })" class="btn btn-sm btn-outline-primary">Editar</a>
+                                @using (Html.BeginForm("Eliminar", "Usuario", new { id = u.IdUsuario }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Desactivar este usuario?')">Desactivar</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No hay usuarios registrados</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

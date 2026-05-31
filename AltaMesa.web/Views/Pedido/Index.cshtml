@@ -1,0 +1,53 @@
+@model AltaMesa.web.Models.ViewModels.PedidoListaVM
+
+@{
+    ViewBag.Title = "Pedidos Activos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Pedidos Activos</h2>
+    <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nuevo Pedido</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    @if (Model.Pedidos.Any())
+    {
+        foreach (var p in Model.Pedidos)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">Mesa @p.NumeroMesa</span>
+                        <span class="badge @(p.Estado == "Abierto" ? "bg-primary" : p.Estado == "En preparacion" ? "bg-warning text-dark" : "bg-info")">@p.Estado</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>Mesero:</strong> @p.NombreMesero</p>
+                        <p class="mb-1"><strong>Fecha:</strong> @p.FechaPedido.ToString("dd/MM/yyyy HH:mm")</p>
+                        <p class="mb-0"><strong>Total:</strong> $@p.Total.ToString("N2")</p>
+                        @if (!string.IsNullOrEmpty(p.ObservacionGeneral))
+                        {
+                            <p class="mb-0 mt-2 text-muted"><small>@p.ObservacionGeneral</small></p>
+                        }
+                    </div>
+                    <div class="card-footer">
+                        <a href="@Url.Action("Detalle", new { id = p.IdPedido })" class="btn btn-sm btn-primary">Ver Detalle</a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="alert alert-info">No hay pedidos activos</div>
+        </div>
+    }
+</div>

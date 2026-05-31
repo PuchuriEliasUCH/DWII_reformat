@@ -1,0 +1,70 @@
+@model AltaMesa.web.Models.ViewModels.MesaListaVM
+
+@{
+    ViewBag.Title = "Mesas";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Mesas</h2>
+    <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nueva Mesa</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Número</th>
+                    <th>Capacidad</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Mesas.Any())
+                {
+                    foreach (var m in Model.Mesas)
+                    {
+                        <tr>
+                            <td>@m.IdMesa</td>
+                            <td>Mesa @m.Numero</td>
+                            <td>@m.Capacidad personas</td>
+                            <td>
+                                @if (m.Estado == "Disponible")
+                                {
+                                    <span class="badge bg-success">Disponible</span>
+                                }
+                                else if (m.Estado == "Ocupada")
+                                {
+                                    <span class="badge bg-warning text-dark">Ocupada</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inhabilitada</span>
+                                }
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Editar", new { id = m.IdMesa })" class="btn btn-sm btn-outline-primary">Editar</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">No hay mesas registradas</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

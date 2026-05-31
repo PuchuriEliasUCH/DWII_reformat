@@ -1,0 +1,105 @@
+@model AltaMesa.web.Models.ViewModels.CocinaListaVM
+
+@{
+    ViewBag.Title = "Cocina";
+}
+
+<h2 class="mb-4">Cocina</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">En Preparación</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Mesa</th>
+                            <th>Observación</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.ColaCocina.Any())
+                        {
+                            foreach (var item in Model.ColaCocina)
+                            {
+                                <tr>
+                                    <td>@item.NombreProducto</td>
+                                    <td>@item.Cantidad</td>
+                                    <td>Mesa @item.NumeroMesa</td>
+                                    <td><small>@item.Observacion</small></td>
+                                    <td>
+                                        @using (Html.BeginForm("CambiarEstado", "Cocina", FormMethod.Post))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="detalleId" value="@item.IdDetallePedido" />
+                                            <input type="hidden" name="estado" value="Listo para servir" />
+                                            <button type="submit" class="btn btn-sm btn-success">Listo</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No hay productos en preparación</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Listos para Servir</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Mesa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.ProductosListos.Any())
+                        {
+                            foreach (var item in Model.ProductosListos)
+                            {
+                                <tr>
+                                    <td>@item.NombreProducto</td>
+                                    <td>@item.Cantidad</td>
+                                    <td>Mesa @item.NumeroMesa</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">No hay productos listos</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
