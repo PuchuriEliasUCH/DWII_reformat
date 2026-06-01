@@ -4,8 +4,8 @@
     ViewBag.Title = "Productos";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Productos</h2>
+<div class="page-header">
+    <h2>Productos</h2>
     <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nuevo Producto</a>
 </div>
 
@@ -19,57 +19,59 @@
 
 <div class="card">
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Categoría</th>
-                    <th>Precio</th>
-                    <th>Preparación</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Productos.Any())
-                {
-                    foreach (var p in Model.Productos)
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width:8%">ID</th>
+                        <th style="width:27%">Nombre</th>
+                        <th style="width:20%">Categoría</th>
+                        <th style="width:12%">Precio</th>
+                        <th style="width:10%">Prep.</th>
+                        <th style="width:10%">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Productos.Any())
+                    {
+                        foreach (var p in Model.Productos)
+                        {
+                            <tr>
+                                <td>@p.IdProducto</td>
+                                <td class="fw-medium">@p.Nombre</td>
+                                <td>@p.Categoria</td>
+                                <td>$@p.Precio.ToString("N2")</td>
+                                <td>
+                                    @if (p.RequierePreparacion)
+                                    {
+                                        <span class="badge badge-si">Sí</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-no">No</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (p.Estado)
+                                    {
+                                        <span class="badge badge-activo">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-inactivo">Inactivo</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
                     {
                         <tr>
-                            <td>@p.IdProducto</td>
-                            <td>@p.Nombre</td>
-                            <td>@p.Categoria</td>
-                            <td>$@p.Precio.ToString("N2")</td>
-                            <td>
-                                @if (p.RequierePreparacion)
-                                {
-                                    <span class="badge bg-warning text-dark">Sí</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-info">No</span>
-                                }
-                            </td>
-                            <td>
-                                @if (p.Estado)
-                                {
-                                    <span class="badge bg-success">Activo</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Inactivo</span>
-                                }
-                            </td>
+                            <td colspan="6" class="text-center text-on-surface-variant py-4">No hay productos registrados</td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-4">No hay productos registrados</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

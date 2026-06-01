@@ -1,9 +1,23 @@
 ﻿@{
-    ViewBag.Title = "About";
+    ViewBag.Title = "Acerca de";
 }
-<main aria-labelledby="title">
-    <h2 id="title">@ViewBag.Title.</h2>
-    <h3>@ViewBag.Message</h3>
 
-    <p>Use this area to provide additional information.</p>
-</main>
+<div class="py-4">
+    <h1 class="headline-lg mb-4">Acerca de AltaMesa</h1>
+    <div class="card">
+        <div class="card-body">
+            <p class="body-md">
+                AltaMesa es un sistema de gestión de pedidos para restaurantes desarrollado bajo
+                el stack .NET Framework 4.8 con ASP.NET MVC 5, Entity Framework 6 y SQL Server.
+            </p>
+            <p class="body-md">
+                El sistema permite la administración de mesas, productos, pedidos y usuarios,
+                con comunicación en tiempo real mediante SignalR para la coordinación entre
+                meseros y cocina.
+            </p>
+            <p class="body-md">
+                Desarrollado como parte del curso de Desarrollo de Software II.
+            </p>
+        </div>
+    </div>
+</div>

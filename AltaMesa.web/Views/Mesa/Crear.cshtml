@@ -4,7 +4,9 @@
     ViewBag.Title = "Crear Mesa";
 }
 
-<h2 class="mb-4">Crear Mesa</h2>
+<div class="page-header">
+    <h2>Crear Mesa</h2>
+</div>
 
 <div class="card">
     <div class="card-body">
@@ -26,9 +28,9 @@
                 </div>
             </div>
 
-            <div class="mt-3">
+            <div class="d-flex gap-2 mt-3">
                 <button type="submit" class="btn btn-primary">Guardar</button>
-                <a href="@Url.Action("Index")" class="btn btn-secondary">Cancelar</a>
+                <a href="@Url.Action("Index")" class="btn btn-outline-primary">Cancelar</a>
             </div>
         }
     </div>

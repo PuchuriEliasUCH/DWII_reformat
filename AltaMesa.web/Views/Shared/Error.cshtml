@@ -1,14 +1,23 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <meta name="viewport" content="width=device-width" />
-    <title>Error</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Error - AltaMesa</title>
+    @Styles.Render("~/Content/css")
 </head>
-<body>
-    <hgroup>
-        <h1>Error.</h1>
-        <h2>Error al procesar la solicitud.</h2>
-    </hgroup>
+<body class="login-page">
+    <div class="container">
+        <div class="login-card text-center">
+            <div class="login-header" style="background: var(--error);">
+                <h1>Error</h1>
+            </div>
+            <div class="login-body">
+                <h2 class="headline-md mb-3">Error al procesar la solicitud</h2>
+                <p class="body-md text-on-surface-variant mb-4">Ocurrió un error inesperado. Intente nuevamente o contacte a soporte.</p>
+                <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Volver al Inicio</a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -4,21 +4,30 @@
     ViewBag.Title = "Pedido Mesa " + Model.Pedido.NumeroMesa;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h2 class="mb-0">Pedido - Mesa @Model.Pedido.NumeroMesa</h2>
-        <span class="badge @(Model.Pedido.Estado == "Abierto" ? "bg-primary" : Model.Pedido.Estado == "En preparacion" ? "bg-warning text-dark" : "bg-info") fs-6">@Model.Pedido.Estado</span>
+        <h2>Pedido - Mesa @Model.Pedido.NumeroMesa</h2>
+        <span class="badge
+            @(Model.Pedido.Estado == "Abierto" ? "badge-abierto" :
+              Model.Pedido.Estado == "Enviado a cocina" ? "badge-enviado-a-cocina" :
+              Model.Pedido.Estado == "En preparacion" ? "badge-en-preparacion" :
+              Model.Pedido.Estado == "Parcialmente servido" ? "badge-parcialmente-servido" :
+              Model.Pedido.Estado == "Cerrado" ? "badge-cerrado" :
+              Model.Pedido.Estado == "Anulado" ? "badge-anulado" : "badge-abierto")"
+            style="font-size: 14px; padding: 6px 14px;">
+            @Model.Pedido.Estado
+        </span>
     </div>
-    <div>
+    <div class="d-flex gap-2">
         @if (Model.Pedido.Estado != "Cerrado" && Model.Pedido.Estado != "Anulado")
         {
             using (Html.BeginForm("Cerrar", "Pedido", new { id = Model.Pedido.IdPedido }, FormMethod.Post))
             {
                 @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-success" onclick="return confirm('¿Cerrar este pedido?')">Cerrar Pedido</button>
+                <button type="submit" class="btn btn-secondary" onclick="return confirm('¿Cerrar este pedido?')">Cerrar Pedido</button>
             }
         }
-        <a href="@Url.Action("Index")" class="btn btn-secondary">Volver</a>
+        <a href="@Url.Action("Index")" class="btn btn-outline-primary">Volver</a>
     </div>
 </div>
 
@@ -30,56 +39,67 @@
     </div>
 }
 
-<div class="row">
+<div class="row g-3">
     <div class="col-md-8">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Productos</h5>
+                <h5 class="headline-sm mb-0">Productos</h5>
             </div>
             <div class="card-body p-0">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Cantidad</th>
-                            <th>Precio Unit.</th>
-                            <th>Subtotal</th>
-                            <th>Estado</th>
-                            <th>Adicional</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.Pedido.Detalles != null && Model.Pedido.Detalles.Any())
-                        {
-                            foreach (var d in Model.Pedido.Detalles)
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="width:25%">Producto</th>
+                                <th style="width:10%">Cant.</th>
+                                <th style="width:12%">P. Unit.</th>
+                                <th style="width:12%">Subtotal</th>
+                                <th style="width:20%">Estado</th>
+                                <th style="width:10%">Adic.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Pedido.Detalles != null && Model.Pedido.Detalles.Any())
+                            {
+                                foreach (var d in Model.Pedido.Detalles)
+                                {
+                                    <tr>
+                                        <td>@d.NombreProducto</td>
+                                        <td>@d.Cantidad</td>
+                                        <td>$@d.PrecioUnitario.ToString("N2")</td>
+                                        <td>$@d.Subtotal.ToString("N2")</td>
+                                        <td>
+                                            <span class="badge
+                                                @(d.EstadoDetalle == "Entregado" ? "badge-entregado" :
+                                                  d.EstadoDetalle == "Anulado" ? "badge-anulado" :
+                                                  d.EstadoDetalle == "Listo para servir" ? "badge-listo-para-servir" :
+                                                  d.EstadoDetalle == "En preparacion" ? "badge-en-preparacion" :
+                                                  "badge-ingresado")">
+                                                @d.EstadoDetalle
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if (d.EsAdicional)
+                                            {
+                                                <span class="badge badge-si">Sí</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-no">No</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
                             {
                                 <tr>
-                                    <td>@d.NombreProducto</td>
-                                    <td>@d.Cantidad</td>
-                                    <td>$@d.PrecioUnitario.ToString("N2")</td>
-                                    <td>$@d.Subtotal.ToString("N2")</td>
-                                    <td>
-                                        <span class="badge @(d.EstadoDetalle == "Entregado" ? "bg-success" : d.EstadoDetalle == "Anulado" ? "bg-danger" : "bg-warning text-dark")">
-                                            @d.EstadoDetalle
-                                        </span>
-                                    </td>
-                                    <td>
-                                        @if (d.EsAdicional)
-                                        {
-                                            <span class="badge bg-info">Sí</span>
-                                        }
-                                    </td>
+                                    <td colspan="6" class="text-center text-on-surface-variant py-4">No hay productos en este pedido</td>
                                 </tr>
                             }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-4">No hay productos en este pedido</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -87,15 +107,15 @@
     <div class="col-md-4">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Resumen</h5>
+                <h5 class="headline-sm mb-0">Resumen</h5>
             </div>
             <div class="card-body">
-                <p class="mb-1"><strong>Mesero:</strong> @Model.Pedido.NombreMesero</p>
-                <p class="mb-1"><strong>Fecha:</strong> @Model.Pedido.FechaPedido.ToString("dd/MM/yyyy HH:mm")</p>
-                <hr />
-                <p class="mb-1"><strong>Subtotal:</strong> $@Model.Pedido.Subtotal.ToString("N2")</p>
-                <p class="mb-1"><strong>Descuento:</strong> $@Model.Pedido.Descuento.ToString("N2")</p>
-                <p class="mb-0 fs-5 fw-bold"><strong>Total:</strong> $@Model.Pedido.Total.ToString("N2")</p>
+                <p class="mb-1 body-md"><span class="text-on-surface-variant">Mesero:</span> @Model.Pedido.NombreMesero</p>
+                <p class="mb-1 body-md"><span class="text-on-surface-variant">Fecha:</span> @Model.Pedido.FechaPedido.ToString("dd/MM/yyyy HH:mm")</p>
+                <hr style="border-color: var(--outline-variant);" />
+                <p class="mb-1 body-md"><span class="text-on-surface-variant">Subtotal:</span> $@Model.Pedido.Subtotal.ToString("N2")</p>
+                <p class="mb-1 body-md"><span class="text-on-surface-variant">Descuento:</span> $@Model.Pedido.Descuento.ToString("N2")</p>
+                <p class="mb-0 headline-sm" style="color: var(--primary);">Total: $@Model.Pedido.Total.ToString("N2")</p>
             </div>
         </div>
 
@@ -103,7 +123,7 @@
         {
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Agregar Producto</h5>
+                    <h5 class="headline-sm mb-0">Agregar Producto</h5>
                 </div>
                 <div class="card-body">
                     @using (Html.BeginForm("AgregarDetalle", "Pedido", FormMethod.Post))

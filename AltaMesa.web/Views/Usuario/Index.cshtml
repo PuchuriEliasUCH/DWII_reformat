@@ -4,8 +4,8 @@
     ViewBag.Title = "Usuarios";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Usuarios</h2>
+<div class="page-header">
+    <h2>Usuarios</h2>
     <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nuevo Usuario</a>
 </div>
 
@@ -19,57 +19,61 @@
 
 <div class="card">
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Correo</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Usuarios.Any())
-                {
-                    foreach (var u in Model.Usuarios)
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width:5%">ID</th>
+                        <th style="width:18%">Nombre</th>
+                        <th style="width:18%">Apellido</th>
+                        <th style="width:22%">Correo</th>
+                        <th style="width:12%">Rol</th>
+                        <th style="width:10%">Estado</th>
+                        <th style="width:15%">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Usuarios.Any())
+                    {
+                        foreach (var u in Model.Usuarios)
+                        {
+                            <tr>
+                                <td>@u.IdUsuario</td>
+                                <td class="fw-medium">@u.NombreUsuario</td>
+                                <td>@u.ApellidoUsuario</td>
+                                <td>@u.CorreoUsuario</td>
+                                <td>@u.NombreRol</td>
+                                <td>
+                                    @if (u.Estado)
+                                    {
+                                        <span class="badge badge-activo">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-inactivo">Inactivo</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1 align-items-center">
+                                        <a href="@Url.Action("Editar", new { id = u.IdUsuario })" class="btn btn-sm btn-outline-primary">Editar</a>
+                                        @using (Html.BeginForm("Eliminar", "Usuario", new { id = u.IdUsuario }, FormMethod.Post))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Desactivar este usuario?')">Desactivar</button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
                     {
                         <tr>
-                            <td>@u.IdUsuario</td>
-                            <td>@u.NombreUsuario</td>
-                            <td>@u.ApellidoUsuario</td>
-                            <td>@u.CorreoUsuario</td>
-                            <td>@u.NombreRol</td>
-                            <td>
-                                @if (u.Estado)
-                                {
-                                    <span class="badge bg-success">Activo</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Inactivo</span>
-                                }
-                            </td>
-                            <td>
-                                <a href="@Url.Action("Editar", new { id = u.IdUsuario })" class="btn btn-sm btn-outline-primary">Editar</a>
-                                @using (Html.BeginForm("Eliminar", "Usuario", new { id = u.IdUsuario }, FormMethod.Post))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Desactivar este usuario?')">Desactivar</button>
-                                }
-                            </td>
+                            <td colspan="7" class="text-center text-on-surface-variant py-4">No hay usuarios registrados</td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No hay usuarios registrados</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

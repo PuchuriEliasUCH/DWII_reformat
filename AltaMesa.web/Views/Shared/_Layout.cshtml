@@ -1,77 +1,14 @@
 ﻿<!DOCTYPE html>
-<html>
+<html data-theme="light">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - AltaMesa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
-    <style>
-        body {
-            background-color: #fff8f5;
-        }
-        .navbar-brand {
-            font-weight: 700;
-            color: #964319 !important;
-        }
-        .navbar {
-            background-color: #ffffff !important;
-            border-bottom: 1px solid #e6dfd5;
-        }
-        .nav-link {
-            color: #55433b !important;
-        }
-        .nav-link:hover {
-            color: #964319 !important;
-        }
-        .nav-link.active {
-            color: #964319 !important;
-            font-weight: 600;
-        }
-        .sidebar {
-            min-height: calc(100vh - 60px);
-            background: #ffffff;
-            border-right: 1px solid #e6dfd5;
-        }
-        .sidebar .nav-link {
-            border-radius: 0.5rem;
-            margin: 2px 8px;
-        }
-        .sidebar .nav-link:hover {
-            background-color: #fff1e9;
-        }
-        .card {
-            border: 1px solid #e6dfd5;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 12px rgba(58, 49, 43, 0.08);
-        }
-        .card-header {
-            background: #ffffff;
-            border-bottom: 1px solid #e6dfd5;
-        }
-        .btn-primary {
-            background-color: #964319;
-            border-color: #964319;
-        }
-        .btn-primary:hover {
-            background-color: #7b2f04;
-            border-color: #7b2f04;
-        }
-        .btn-success {
-            background-color: #546430;
-            border-color: #546430;
-        }
-        .btn-success:hover {
-            background-color: #3d4c1a;
-            border-color: #3d4c1a;
-        }
-        .table th {
-            color: #7a5500;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-    </style>
 </head>
 <body>
     @{
@@ -82,14 +19,15 @@
 
     @if (usuarioId != null)
     {
-        <div class="d-flex">
-            <div class="sidebar d-none d-md-block" style="width: 220px; flex-shrink: 0;">
-                <div class="p-3 border-bottom">
-                    <h5 class="mb-0" style="color: #964319;">AltaMesa</h5>
-                    <small class="text-muted">@usuarioRol</small>
+        <div class="layout-wrapper">
+            @* Sidebar — bottom nav on mobile, side panel on desktop *@
+            <div class="sidebar">
+                <div class="sidebar-brand-section">
+                    <h5>AltaMesa</h5>
+                    <small>@usuarioRol</small>
                 </div>
-                <nav class="mt-2">
-                    <ul class="nav flex-column">
+                <nav>
+                    <ul class="nav">
                         @if (string.Equals(usuarioRol, "admin", StringComparison.OrdinalIgnoreCase))
                         {
                             <li class="nav-item">
@@ -125,28 +63,33 @@
                         }
                     </ul>
                 </nav>
+                <div class="sidebar-logout">
+                    @using (Html.BeginForm("Logout", "Auth", FormMethod.Post, new { @class = "mb-0" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-ghost w-100">Cerrar Sesión</button>
+                    }
+                </div>
             </div>
-            <div style="flex: 1; min-width: 0;">
-                <nav class="navbar navbar-expand-sm">
+
+            @* Main content area *@
+            <div class="main-content">
+                <nav class="navbar navbar-expand">
                     <div class="container-fluid">
-                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
-                        <div class="collapse navbar-collapse" id="navbarNav">
-                            <ul class="navbar-nav ms-auto">
-                                <li class="nav-item d-flex align-items-center">
-                                    <span class="navbar-text me-2">@usuarioNombre</span>
-                                    @using (Html.BeginForm("Logout", "Auth", FormMethod.Post, new { @class = "mb-0" }))
-                                    {
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Cerrar Sesión</button>
-                                    }
-                                </li>
-                            </ul>
+                        <a class="navbar-brand d-md-none" href="#">AltaMesa</a>
+                        <div></div>
+                        <div class="d-flex align-items-center gap-2 gap-md-3">
+                            <span class="body-sm text-on-surface-variant">@usuarioRol</span>
+                            <button class="theme-toggle" id="themeToggleBtn" type="button" title="Cambiar tema">☀</button>
+                            @using (Html.BeginForm("Logout", "Auth", FormMethod.Post, new { @class = "mb-0 d-none d-md-inline-flex" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-ghost">Cerrar Sesión</button>
+                            }
                         </div>
                     </div>
                 </nav>
-                <div class="container-fluid p-4">
+                <div class="main-content-body">
                     @RenderBody()
                 </div>
             </div>
@@ -161,6 +104,31 @@
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/signalr")
     <script src="/signalr/hubs"></script>
+    <script>
+        (function () {
+            var html = document.documentElement;
+            var theme = localStorage.getItem('altamesa-theme') || 'light';
+            html.setAttribute('data-theme', theme);
+            updateToggleButtons(theme);
+
+            function updateToggleButtons(t) {
+                var icon = t === 'dark' ? '&#9790;' : '&#9728;';
+                [].forEach.call(document.querySelectorAll('.theme-toggle'), function (btn) {
+                    btn.innerHTML = icon;
+                });
+            }
+
+            [].forEach.call(document.querySelectorAll('.theme-toggle'), function (btn) {
+                btn.addEventListener('click', function () {
+                    var current = html.getAttribute('data-theme') || 'light';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    html.setAttribute('data-theme', next);
+                    localStorage.setItem('altamesa-theme', next);
+                    updateToggleButtons(next);
+                });
+            });
+        })();
+    </script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

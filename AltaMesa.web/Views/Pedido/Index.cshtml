@@ -4,8 +4,8 @@
     ViewBag.Title = "Pedidos Activos";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Pedidos Activos</h2>
+<div class="page-header">
+    <h2>Pedidos Activos</h2>
     <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nuevo Pedido</a>
 </div>
 
@@ -17,28 +17,42 @@
     </div>
 }
 
-<div class="row">
+<div class="row g-3">
     @if (Model.Pedidos.Any())
     {
         foreach (var p in Model.Pedidos)
         {
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 order-card
+                    @(p.Estado == "Abierto" ? "status-abierto" :
+                      p.Estado == "Enviado a cocina" ? "status-enviado-a-cocina" :
+                      p.Estado == "En preparacion" ? "status-en-preparacion" :
+                      p.Estado == "Parcialmente servido" ? "status-parcialmente-servido" :
+                      p.Estado == "Cerrado" ? "status-cerrado" :
+                      p.Estado == "Anulado" ? "status-anulado" : "")">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">Mesa @p.NumeroMesa</span>
-                        <span class="badge @(p.Estado == "Abierto" ? "bg-primary" : p.Estado == "En preparacion" ? "bg-warning text-dark" : "bg-info")">@p.Estado</span>
+                        <span class="fw-bold headline-sm mb-0">Mesa @p.NumeroMesa</span>
+                        <span class="badge
+                            @(p.Estado == "Abierto" ? "badge-abierto" :
+                              p.Estado == "Enviado a cocina" ? "badge-enviado-a-cocina" :
+                              p.Estado == "En preparacion" ? "badge-en-preparacion" :
+                              p.Estado == "Parcialmente servido" ? "badge-parcialmente-servido" :
+                              p.Estado == "Cerrado" ? "badge-cerrado" :
+                              p.Estado == "Anulado" ? "badge-anulado" : "badge-abierto")">
+                            @p.Estado
+                        </span>
                     </div>
                     <div class="card-body">
-                        <p class="mb-1"><strong>Mesero:</strong> @p.NombreMesero</p>
-                        <p class="mb-1"><strong>Fecha:</strong> @p.FechaPedido.ToString("dd/MM/yyyy HH:mm")</p>
-                        <p class="mb-0"><strong>Total:</strong> $@p.Total.ToString("N2")</p>
+                        <p class="mb-1 body-md"><span class="text-on-surface-variant">Mesero:</span> @p.NombreMesero</p>
+                        <p class="mb-1 body-md"><span class="text-on-surface-variant">Fecha:</span> @p.FechaPedido.ToString("dd/MM/yyyy HH:mm")</p>
+                        <p class="mb-0 headline-sm"><span class="text-on-surface-variant">Total:</span> $@p.Total.ToString("N2")</p>
                         @if (!string.IsNullOrEmpty(p.ObservacionGeneral))
                         {
-                            <p class="mb-0 mt-2 text-muted"><small>@p.ObservacionGeneral</small></p>
+                            <p class="mb-0 mt-2 body-sm text-on-surface-variant">@p.ObservacionGeneral</p>
                         }
                     </div>
                     <div class="card-footer">
-                        <a href="@Url.Action("Detalle", new { id = p.IdPedido })" class="btn btn-sm btn-primary">Ver Detalle</a>
+                        <a href="@Url.Action("Detalle", new { id = p.IdPedido })" class="btn btn-primary w-100">Ver Detalle</a>
                     </div>
                 </div>
             </div>

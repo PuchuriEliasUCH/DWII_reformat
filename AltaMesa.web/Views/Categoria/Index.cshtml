@@ -4,8 +4,8 @@
     ViewBag.Title = "Categorías";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Categorías</h2>
+<div class="page-header">
+    <h2>Categorías</h2>
     <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nueva Categoría</a>
 </div>
 
@@ -19,56 +19,60 @@
 
 <div class="card">
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Descripción</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Any())
-                {
-                    foreach (var c in Model)
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width:5%">ID</th>
+                        <th style="width:18%">Nombre</th>
+                        <th style="width:32%">Descripción</th>
+                        <th style="width:10%">Estado</th>
+                        <th style="width:35%">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var c in Model)
+                        {
+                            <tr>
+                                <td>@c.IdCategoria</td>
+                                <td class="fw-medium">@c.Nombre</td>
+                                <td>@c.Descripcion</td>
+                                <td>
+                                    @if (c.Estado)
+                                    {
+                                        <span class="badge badge-activo">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-inactivo">Inactivo</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1 align-items-center">
+                                        <a href="@Url.Action("Editar", new { id = c.IdCategoria })" class="btn btn-sm btn-outline-primary">Editar</a>
+                                        @if (c.Estado)
+                                        {
+                                            using (Html.BeginForm("Desactivar", "Categoria", new { id = c.IdCategoria }, FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Desactivar esta categoría?')">Desactivar</button>
+                                            }
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
                     {
                         <tr>
-                            <td>@c.IdCategoria</td>
-                            <td>@c.Nombre</td>
-                            <td>@c.Descripcion</td>
-                            <td>
-                                @if (c.Estado)
-                                {
-                                    <span class="badge bg-success">Activo</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Inactivo</span>
-                                }
-                            </td>
-                            <td>
-                                <a href="@Url.Action("Editar", new { id = c.IdCategoria })" class="btn btn-sm btn-outline-primary">Editar</a>
-                                @if (c.Estado)
-                                {
-                                    using (Html.BeginForm("Desactivar", "Categoria", new { id = c.IdCategoria }, FormMethod.Post))
-                                    {
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Desactivar esta categoría?')">Desactivar</button>
-                                    }
-                                }
-                            </td>
+                            <td colspan="5" class="text-center text-on-surface-variant py-4">No hay categorías registradas</td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">No hay categorías registradas</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

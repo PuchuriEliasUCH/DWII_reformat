@@ -11,52 +11,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Iniciar Sesión - AltaMesa</title>
     @Styles.Render("~/Content/css")
-    <style>
-        body {
-            background-color: #fff8f5;
-            display: flex;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .login-card {
-            max-width: 420px;
-            margin: auto;
-            border: 1px solid #e6dfd5;
-            border-radius: 1rem;
-            background: #ffffff;
-            box-shadow: 0 4px 12px rgba(58, 49, 43, 0.08);
-        }
-        .login-header {
-            background: #964319;
-            color: white;
-            padding: 2rem;
-            border-radius: 1rem 1rem 0 0;
-            text-align: center;
-        }
-        .login-header h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin: 0;
-        }
-        .login-body {
-            padding: 2rem;
-        }
-        .btn-primary {
-            background-color: #964319;
-            border-color: #964319;
-        }
-        .btn-primary:hover {
-            background-color: #7b2f04;
-            border-color: #7b2f04;
-        }
-    </style>
 </head>
-<body>
+<body class="login-page">
     <div class="container">
         <div class="login-card">
             <div class="login-header">
                 <h1>AltaMesa</h1>
-                <p class="mb-0">Sistema de Gestión de Pedidos</p>
+                <p class="mb-0 body-md" style="color: var(--primary-fixed);">Sistema de Gestión de Pedidos</p>
             </div>
             <div class="login-body">
                 @using (Html.BeginForm("Login", "Auth", FormMethod.Post))
