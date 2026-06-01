@@ -54,7 +54,8 @@ namespace AltaMesa.web.Models.ViewModels
         public int MesasOcupadas { get; set; }
         public int MesasDisponibles { get; set; }
         public int PedidosActivos { get; set; }
-        public int ProductosPendientes { get; set; }
+        public int PlatosEnPreparacion { get; set; }
+        public int PlatosListos { get; set; }
         public List<PedidoDTO> UltimosPedidos { get; set; }
     }
 }

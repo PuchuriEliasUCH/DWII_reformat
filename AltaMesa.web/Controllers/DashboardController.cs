@@ -1,3 +1,4 @@
+using AltaMesa.web.Constants;
 using AltaMesa.web.Filters;
 using AltaMesa.web.Models.ViewModels;
 using AltaMesa.web.Services.Interfaces;
@@ -23,20 +24,45 @@ namespace AltaMesa.web.Controllers
 
         public async Task<ActionResult> Index()
         {
+            var vm = await ObtenerDashboard();
+            return View(vm);
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetCounters()
+        {
+            var vm = await ObtenerDashboard();
+            return Json(new
+            {
+                mesasOcupadas = vm.MesasOcupadas,
+                mesasDisponibles = vm.MesasDisponibles,
+                pedidosActivos = vm.PedidosActivos,
+                platosEnPreparacion = vm.PlatosEnPreparacion,
+                platosListos = vm.PlatosListos
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        private async Task<DashboardVM> ObtenerDashboard()
+        {
             var mesas = await _mesaService.Listar();
             var pedidos = await _pedidoService.ListarActivos();
             var colaCocina = await _pedidoService.ListarColaCocina();
 
-            var vm = new DashboardVM
+            return new DashboardVM
             {
                 MesasOcupadas = mesas.Count(m => m.Estado == "Ocupada"),
                 MesasDisponibles = mesas.Count(m => m.Estado == "Disponible"),
                 PedidosActivos = pedidos.Count,
-                ProductosPendientes = colaCocina.Count,
-                UltimosPedidos = pedidos.OrderByDescending(p => p.FechaPedido).Take(5).ToList()
+                PlatosEnPreparacion = colaCocina.Count(c =>
+                    c.EstadoDetalle == DetalleEstado.Ingresado ||
+                    c.EstadoDetalle == DetalleEstado.EnPreparacion),
+                PlatosListos = colaCocina.Count(c =>
+                    c.EstadoDetalle == DetalleEstado.ListoParaServir),
+                UltimosPedidos = pedidos
+                    .OrderByDescending(p => p.FechaPedido)
+                    .Take(5)
+                    .ToList()
             };
-
-            return View(vm);
         }
     }
 }

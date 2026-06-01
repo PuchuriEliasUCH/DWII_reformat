@@ -244,7 +244,7 @@ VALUES
 ('Pollos','Platos principales de pollo'),
 ('Combos','Promociones y combos'),
 ('Parrillas','Especialidades a la parrilla'),
-('Bebidas','Bebidas frías'),
+('Bebidas','Bebidas frï¿½as'),
 ('Adicionales','Complementos'),
 ('Postres','Postres y dulces');
 GO
@@ -262,7 +262,7 @@ SELECT
 id_categoria,
 '1/4 Pollo',
 'Incluye papas y ensalada',
-'Porción de pollo a la brasa acompañada de papas fritas y ensalada fresca',
+'Porciï¿½n de pollo a la brasa acompaï¿½ada de papas fritas y ensalada fresca',
 24.90,
 1
 FROM categoria_producto
@@ -281,7 +281,7 @@ SELECT
 id_categoria,
 '1/2 Pollo',
 'Incluye papas familiares',
-'Media porción de pollo con papas y ensalada',
+'Media porciï¿½n de pollo con papas y ensalada',
 45.90,
 1
 FROM categoria_producto
@@ -300,7 +300,7 @@ SELECT
 id_categoria,
 'Pollo Entero',
 'Ideal para compartir',
-'Pollo entero acompañado de papas familiares y ensalada',
+'Pollo entero acompaï¿½ado de papas familiares y ensalada',
 78.90,
 1
 FROM categoria_producto
@@ -351,7 +351,7 @@ INSERT INTO producto
 (id_categoria,nombre,desc_corta,desc_completa,precio,requiere_preparacion)
 SELECT id_categoria,'Parrilla Mixta',
 'Carnes seleccionadas',
-'Combinación de pollo, carne y acompañamientos',
+'Combinaciï¿½n de pollo, carne y acompaï¿½amientos',
 42.90,1
 FROM categoria_producto
 WHERE nombre='Parrillas';
@@ -360,7 +360,7 @@ INSERT INTO producto
 (id_categoria,nombre,desc_corta,desc_completa,precio,requiere_preparacion)
 SELECT id_categoria,'Anticuchos',
 'Tradicional peruano',
-'Brochetas acompañadas de papas',
+'Brochetas acompaï¿½adas de papas',
 22.90,1
 FROM categoria_producto
 WHERE nombre='Parrillas';
@@ -403,7 +403,7 @@ INSERT INTO producto
 SELECT id_categoria,'Limonada',
 'Natural',
 'Limonada fresca',
-8.90,0
+8.90,1
 FROM categoria_producto
 WHERE nombre='Bebidas';
 
@@ -416,7 +416,7 @@ ADICIONALES
 INSERT INTO producto
 (id_categoria,nombre,desc_corta,desc_completa,precio,requiere_preparacion)
 SELECT id_categoria,'Papas Extra',
-'Porción adicional',
+'Porciï¿½n adicional',
 'Papas fritas adicionales',
 9.90,1
 FROM categoria_producto
@@ -433,9 +433,9 @@ WHERE nombre='Adicionales';
 
 INSERT INTO producto
 (id_categoria,nombre,desc_corta,desc_completa,precio,requiere_preparacion)
-SELECT id_categoria,'Crema Ají',
+SELECT id_categoria,'Crema Ajï¿½',
 'Salsa especial',
-'Crema artesanal de ají',
+'Crema artesanal de ajï¿½',
 3.90,0
 FROM categoria_producto
 WHERE nombre='Adicionales';
@@ -458,8 +458,8 @@ POSTRES
 INSERT INTO producto
 (id_categoria,nombre,desc_corta,desc_completa,precio,requiere_preparacion)
 SELECT id_categoria,'Tres Leches',
-'Postre clásico',
-'Bizcocho húmedo con tres leches',
+'Postre clï¿½sico',
+'Bizcocho hï¿½medo con tres leches',
 12.90,0
 FROM categoria_producto
 WHERE nombre='Postres';
@@ -468,7 +468,7 @@ INSERT INTO producto
 (id_categoria,nombre,desc_corta,desc_completa,precio,requiere_preparacion)
 SELECT id_categoria,'Brownie',
 'Chocolate artesanal',
-'Brownie acompañado de salsa',
+'Brownie acompaï¿½ado de salsa',
 11.90,0
 FROM categoria_producto
 WHERE nombre='Postres';

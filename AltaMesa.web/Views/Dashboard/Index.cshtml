@@ -6,42 +6,50 @@
 
 <h2 class="mb-4">Dashboard</h2>
 
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
+<div class="row mb-4" id="dashboardCounters">
+    <div class="col-md-2 col-6 mb-3">
         <div class="card text-center h-100">
             <div class="card-body">
-                <h3 class="text-primary mb-0">@Model.MesasOcupadas</h3>
+                <h3 class="text-primary mb-0" id="counterOcupadas">@Model.MesasOcupadas</h3>
                 <p class="text-muted mb-0">Mesas Ocupadas</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3 mb-3">
+    <div class="col-md-2 col-6 mb-3">
         <div class="card text-center h-100">
             <div class="card-body">
-                <h3 class="text-success mb-0">@Model.MesasDisponibles</h3>
+                <h3 class="text-success mb-0" id="counterDisponibles">@Model.MesasDisponibles</h3>
                 <p class="text-muted mb-0">Mesas Disponibles</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3 mb-3">
+    <div class="col-md-2 col-6 mb-3">
         <div class="card text-center h-100">
             <div class="card-body">
-                <h3 class="text-warning mb-0">@Model.PedidosActivos</h3>
+                <h3 class="text-warning mb-0" id="counterPedidos">@Model.PedidosActivos</h3>
                 <p class="text-muted mb-0">Pedidos Activos</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3 mb-3">
+    <div class="col-md-3 col-6 mb-3">
         <div class="card text-center h-100">
             <div class="card-body">
-                <h3 class="text-info mb-0">@Model.ProductosPendientes</h3>
-                <p class="text-muted mb-0">Productos Pendientes</p>
+                <h3 class="text-info mb-0" id="counterPreparacion">@Model.PlatosEnPreparacion</h3>
+                <p class="text-muted mb-0">Platos en Preparación</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h3 class="text-success mb-0" id="counterListos">@Model.PlatosListos</h3>
+                <p class="text-muted mb-0">Listos para Servir</p>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card">
+<div class="card" id="ultimosPedidosCard">
     <div class="card-header">
         <h5 class="mb-0">Últimos Pedidos</h5>
     </div>
@@ -85,12 +93,31 @@
 
 @section scripts {
     <script>
+        function actualizarCounters() {
+            $.getJSON('@Url.Action("GetCounters", "Dashboard")', function (data) {
+                $('#counterOcupadas').text(data.mesasOcupadas);
+                $('#counterDisponibles').text(data.mesasDisponibles);
+                $('#counterPedidos').text(data.pedidosActivos);
+                $('#counterPreparacion').text(data.platosEnPreparacion);
+                $('#counterListos').text(data.platosListos);
+            });
+        }
+
         $(function () {
             var pedidoHub = $.connection.pedidoHub;
             pedidoHub.client.nuevoPedido = function () { location.reload(); };
             pedidoHub.client.pedidoCerrado = function () { location.reload(); };
+            pedidoHub.client.actualizarPedido = function () { actualizarCounters(); };
+            pedidoHub.client.nuevoDetalleCocina = function () { actualizarCounters(); };
+            pedidoHub.client.productoListo = function () { actualizarCounters(); };
+
+            var cocinaHub = $.connection.cocinaHub;
+            cocinaHub.client.nuevoDetalleCocina = function () { actualizarCounters(); };
+            cocinaHub.client.actualizarDetalleCocina = function () { actualizarCounters(); };
+
             $.connection.hub.start().done(function () {
                 pedidoHub.server.joinGroup();
+                cocinaHub.server.joinGroup();
             });
         });
     </script>

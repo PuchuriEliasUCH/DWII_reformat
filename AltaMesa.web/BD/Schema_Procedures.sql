@@ -435,8 +435,9 @@ AS
 BEGIN
 
 DECLARE @precio DECIMAL(10,2);
+DECLARE @requiere_prep BIT;
 
-SELECT @precio=precio
+SELECT @precio=precio, @requiere_prep=requiere_preparacion
 FROM producto
 WHERE id_producto=@producto;
 
@@ -447,7 +448,8 @@ id_producto,
 cantidad,
 precio_unitario,
 subtotal,
-observacion
+observacion,
+estado_detalle
 )
 VALUES
 (
@@ -456,7 +458,8 @@ VALUES
 @cantidad,
 @precio,
 (@cantidad*@precio),
-@obs
+@obs,
+CASE WHEN @requiere_prep = 1 THEN 'Ingresado' ELSE 'Entregado' END
 );
 
 UPDATE pedido

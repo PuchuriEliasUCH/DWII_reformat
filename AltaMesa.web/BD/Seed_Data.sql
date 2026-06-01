@@ -4,9 +4,9 @@ GO
 -- Roles
 INSERT INTO rol (nombre_rol)
 VALUES
-    ('Admin'),
-    ('Mesero'),
-    ('Chef');
+    ('admin'),
+    ('mesero'),
+    ('chef');
 GO
 
 -- Usuarios (contra_hash = bcrypt)
