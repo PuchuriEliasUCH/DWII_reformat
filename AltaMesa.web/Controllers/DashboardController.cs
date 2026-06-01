@@ -1,28 +1,31 @@
-using System.Linq;
-using System.Web.Mvc;
 using AltaMesa.web.Filters;
 using AltaMesa.web.Models.ViewModels;
-using AltaMesa.web.Services;
+using AltaMesa.web.Services.Interfaces;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace AltaMesa.web.Controllers
 {
-    [AutorizarRol(Rol = "Administrador")]
+    [AutorizarRol(Rol = "admin")]
     public class DashboardController : Controller
     {
-        private readonly MesaService _mesaService;
-        private readonly PedidoService _pedidoService;
+        private readonly IMesaService _mesaService;
+        private readonly IPedidoService _pedidoService;
 
-        public DashboardController()
+        public DashboardController(
+            IMesaService mesaService,
+            IPedidoService pedidoService)
         {
-            _mesaService = new MesaService();
-            _pedidoService = new PedidoService();
+            _mesaService = mesaService;
+            _pedidoService = pedidoService;
         }
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            var mesas = _mesaService.Listar();
-            var pedidos = _pedidoService.ListarActivos();
-            var colaCocina = _pedidoService.ListarColaCocina();
+            var mesas = await _mesaService.Listar();
+            var pedidos = await _pedidoService.ListarActivos();
+            var colaCocina = await _pedidoService.ListarColaCocina();
 
             var vm = new DashboardVM
             {

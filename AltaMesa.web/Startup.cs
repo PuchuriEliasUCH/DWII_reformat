@@ -1,6 +1,5 @@
 using Microsoft.Owin;
 using Owin;
-using Microsoft.AspNet.SignalR;
 
 [assembly: OwinStartup(typeof(AltaMesa.web.Startup))]
 

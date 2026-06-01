@@ -133,3 +133,23 @@
         }
     </div>
 </div>
+
+@section scripts {
+    <script>
+        $(function () {
+            var pedidoId = @Model.Pedido.IdPedido;
+            var pedidoHub = $.connection.pedidoHub;
+
+            pedidoHub.client.actualizarPedido = function (id) {
+                if (id === pedidoId) setTimeout(function () { location.reload(); }, 500);
+            };
+            pedidoHub.client.productoListo = function (id) {
+                if (id === pedidoId) setTimeout(function () { location.reload(); }, 500);
+            };
+
+            $.connection.hub.start().done(function () {
+                pedidoHub.server.joinGroup();
+            });
+        });
+    </script>
+}

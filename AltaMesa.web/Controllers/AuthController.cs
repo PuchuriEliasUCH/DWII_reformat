@@ -1,21 +1,23 @@
-using System.Web.Mvc;
+using AltaMesa.web.Helpers;
 using AltaMesa.web.Models.ViewModels;
-using AltaMesa.web.Services;
+using AltaMesa.web.Services.Interfaces;
+using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace AltaMesa.web.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly AuthService _authService;
+        private readonly IAuthService _authService;
 
-        public AuthController()
+        public AuthController(IAuthService authService)
         {
-            _authService = new AuthService();
+            _authService = authService;
         }
 
         public ActionResult Login()
         {
-            if (Session["UsuarioId"] != null)
+            if (SessionHelper.IsAuthenticated())
                 return RedirectToAction("Index", "Home");
 
             return View();
@@ -23,18 +25,25 @@ namespace AltaMesa.web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(LoginVM model)
+        public async Task<ActionResult> Login(LoginVM model)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
-            var usuario = _authService.Login(model.Correo, model.Password);
+            var usuario = await _authService.Login(model.Correo, model.Password);
 
             if (usuario == null)
             {
                 ModelState.AddModelError("", "Correo o contraseña incorrectos");
                 return View(model);
             }
+
+            SessionHelper.SetSession(
+                usuario.IdUsuario,
+                usuario.NombreUsuario,
+                usuario.NombreRol,
+                usuario.CorreoUsuario
+            );
 
             return RedirectToAction("Index", "Home");
         }
@@ -43,7 +52,7 @@ namespace AltaMesa.web.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Logout()
         {
-            _authService.Logout();
+            SessionHelper.DestroySession();
             return RedirectToAction("Login");
         }
     }

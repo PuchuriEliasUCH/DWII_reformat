@@ -1,38 +1,46 @@
-using System.Linq;
-using System.Web.Mvc;
 using AltaMesa.web.DTOs;
 using AltaMesa.web.Filters;
 using AltaMesa.web.Models.ViewModels;
-using AltaMesa.web.Services;
+using AltaMesa.web.Services.Interfaces;
+using AutoMapper;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace AltaMesa.web.Controllers
 {
-    [AutorizarRol(Rol = "Administrador")]
+    [AutorizarRol(Rol = "admin")]
     public class ProductoController : Controller
     {
-        private readonly ProductoService _productoService;
-        private readonly CategoriaService _categoriaService;
+        private readonly IProductoService _productoService;
+        private readonly ICategoriaService _categoriaService;
+        private readonly IMapper _mapper;
 
-        public ProductoController()
+        public ProductoController(
+            IProductoService productoService,
+            ICategoriaService categoriaService,
+            IMapper mapper)
         {
-            _productoService = new ProductoService();
-            _categoriaService = new CategoriaService();
+            _productoService = productoService;
+            _categoriaService = categoriaService;
+            _mapper = mapper;
         }
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
             var vm = new ProductoListaVM
             {
-                Productos = _productoService.Listar()
+                Productos = await _productoService.Listar()
             };
             return View(vm);
         }
 
-        public ActionResult Crear()
+        public async Task<ActionResult> Crear()
         {
+            var categorias = await _categoriaService.Listar();
             var vm = new ProductoCrearVM
             {
-                Categorias = _categoriaService.Listar()
+                Categorias = categorias
                     .Select(c => new SelectListItem
                     {
                         Value = c.IdCategoria.ToString(),
@@ -44,11 +52,12 @@ namespace AltaMesa.web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Crear(ProductoCrearVM model)
+        public async Task<ActionResult> Crear(ProductoCrearVM model)
         {
             if (!ModelState.IsValid)
             {
-                model.Categorias = _categoriaService.Listar()
+                var categorias = await _categoriaService.Listar();
+                model.Categorias = categorias
                     .Select(c => new SelectListItem
                     {
                         Value = c.IdCategoria.ToString(),
@@ -57,15 +66,7 @@ namespace AltaMesa.web.Controllers
                 return View(model);
             }
 
-            _productoService.Crear(new CrearProductoDTO
-            {
-                Categoria = model.Categoria,
-                Nombre = model.Nombre,
-                Corta = model.Corta,
-                Larga = model.Larga,
-                Precio = model.Precio,
-                Prep = model.Prep
-            });
+            await _productoService.Crear(_mapper.Map<CrearProductoDTO>(model));
 
             TempData["Success"] = "Producto creado exitosamente";
             return RedirectToAction("Index");

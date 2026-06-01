@@ -1,12 +1,19 @@
 using Microsoft.AspNet.SignalR;
+using System.Threading.Tasks;
 
 namespace AltaMesa.web.Hubs
 {
     public class PedidoHub : Hub
     {
-        public void JoinGroup()
+        public override async Task OnConnected()
         {
-            Groups.Add(Context.ConnectionId, "pedidos");
+            await Groups.Add(Context.ConnectionId, "pedidos").ConfigureAwait(false);
+            await base.OnConnected().ConfigureAwait(false);
+        }
+
+        public Task JoinGroup()
+        {
+            return Groups.Add(Context.ConnectionId, "pedidos");
         }
     }
 }

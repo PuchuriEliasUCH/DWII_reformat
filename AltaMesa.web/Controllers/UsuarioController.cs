@@ -1,38 +1,46 @@
-using System.Linq;
-using System.Web.Mvc;
 using AltaMesa.web.DTOs;
 using AltaMesa.web.Filters;
 using AltaMesa.web.Models.ViewModels;
-using AltaMesa.web.Services;
+using AltaMesa.web.Services.Interfaces;
+using AutoMapper;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace AltaMesa.web.Controllers
 {
-    [AutorizarRol(Rol = "Administrador")]
+    [AutorizarRol(Rol = "admin")]
     public class UsuarioController : Controller
     {
-        private readonly UsuarioService _usuarioService;
-        private readonly RolService _rolService;
+        private readonly IUsuarioService _usuarioService;
+        private readonly IRolService _rolService;
+        private readonly IMapper _mapper;
 
-        public UsuarioController()
+        public UsuarioController(
+            IUsuarioService usuarioService,
+            IRolService rolService,
+            IMapper mapper)
         {
-            _usuarioService = new UsuarioService();
-            _rolService = new RolService();
+            _usuarioService = usuarioService;
+            _rolService = rolService;
+            _mapper = mapper;
         }
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
             var vm = new UsuarioListaVM
             {
-                Usuarios = _usuarioService.Listar()
+                Usuarios = await _usuarioService.Listar()
             };
             return View(vm);
         }
 
-        public ActionResult Crear()
+        public async Task<ActionResult> Crear()
         {
+            var roles = await _rolService.ListarRoles();
             var vm = new UsuarioCrearVM
             {
-                Roles = _rolService.ListarRoles()
+                Roles = roles
                     .Select(r => new SelectListItem
                     {
                         Value = r.IdRol.ToString(),
@@ -44,11 +52,12 @@ namespace AltaMesa.web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Crear(UsuarioCrearVM model)
+        public async Task<ActionResult> Crear(UsuarioCrearVM model)
         {
             if (!ModelState.IsValid)
             {
-                model.Roles = _rolService.ListarRoles()
+                var roles = await _rolService.ListarRoles();
+                model.Roles = roles
                     .Select(r => new SelectListItem
                     {
                         Value = r.IdRol.ToString(),
@@ -57,49 +66,37 @@ namespace AltaMesa.web.Controllers
                 return View(model);
             }
 
-            _usuarioService.Crear(new CrearUsuarioDTO
-            {
-                IdRol = model.IdRol,
-                Nombre = model.Nombre,
-                Apellido = model.Apellido,
-                Correo = model.Correo,
-                Password = model.Password
-            });
+            await _usuarioService.Crear(_mapper.Map<CrearUsuarioDTO>(model));
 
             TempData["Success"] = "Usuario creado exitosamente";
             return RedirectToAction("Index");
         }
 
-        public ActionResult Editar(int id)
+        public async Task<ActionResult> Editar(int id)
         {
-            var usuario = _usuarioService.Listar().FirstOrDefault(u => u.IdUsuario == id);
+            var usuarios = await _usuarioService.Listar();
+            var usuario = usuarios.FirstOrDefault(u => u.IdUsuario == id);
             if (usuario == null) return HttpNotFound();
 
-            var vm = new UsuarioEditarVM
-            {
-                IdUsuario = usuario.IdUsuario,
-                IdRol = usuario.IdRol,
-                Nombre = usuario.NombreUsuario,
-                Apellido = usuario.ApellidoUsuario,
-                Correo = usuario.CorreoUsuario,
-                Estado = usuario.Estado,
-                Roles = _rolService.ListarRoles()
-                    .Select(r => new SelectListItem
-                    {
-                        Value = r.IdRol.ToString(),
-                        Text = r.NombreRol
-                    }).ToList()
-            };
+            var roles = await _rolService.ListarRoles();
+            var vm = _mapper.Map<UsuarioEditarVM>(usuario);
+            vm.Roles = roles
+                .Select(r => new SelectListItem
+                {
+                    Value = r.IdRol.ToString(),
+                    Text = r.NombreRol
+                }).ToList();
             return View(vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Editar(UsuarioEditarVM model)
+        public async Task<ActionResult> Editar(UsuarioEditarVM model)
         {
             if (!ModelState.IsValid)
             {
-                model.Roles = _rolService.ListarRoles()
+                var roles = await _rolService.ListarRoles();
+                model.Roles = roles
                     .Select(r => new SelectListItem
                     {
                         Value = r.IdRol.ToString(),
@@ -108,15 +105,7 @@ namespace AltaMesa.web.Controllers
                 return View(model);
             }
 
-            _usuarioService.Actualizar(new ActualizarUsuarioDTO
-            {
-                IdUsuario = model.IdUsuario,
-                IdRol = model.IdRol,
-                Nombre = model.Nombre,
-                Apellido = model.Apellido,
-                Correo = model.Correo,
-                Estado = model.Estado
-            });
+            await _usuarioService.Actualizar(_mapper.Map<ActualizarUsuarioDTO>(model));
 
             TempData["Success"] = "Usuario actualizado exitosamente";
             return RedirectToAction("Index");
@@ -124,9 +113,9 @@ namespace AltaMesa.web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Eliminar(int id)
+        public async Task<ActionResult> Eliminar(int id)
         {
-            _usuarioService.Eliminar(id);
+            await _usuarioService.Eliminar(id);
             TempData["Success"] = "Usuario desactivado exitosamente";
             return RedirectToAction("Index");
         }

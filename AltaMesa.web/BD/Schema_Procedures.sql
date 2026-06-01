@@ -96,7 +96,16 @@ AS
 BEGIN
 
 SELECT
-u.*,
+u.id_usuario,
+u.id_rol,
+u.nombre_usuario,
+u.apellido_usuario,
+u.correo_usuario,
+u.contra_hash,
+u.estado,
+u.create_at,
+u.update_at,
+u.update_by,
 r.nombre_rol
 FROM usuario u
 INNER JOIN rol r
@@ -178,7 +187,7 @@ CREATE OR ALTER PROC sp_listar_mesas
 AS
 BEGIN
 
-SELECT * FROM mesa;
+SELECT id_mesa, numero, capacidad, estado FROM mesa;
 
 END
 GO
@@ -267,7 +276,7 @@ CREATE OR ALTER PROC sp_listar_categoria
 AS
 BEGIN
 
-SELECT * FROM categoria_producto;
+SELECT id_categoria, nombre, descripcion, estado, created_at, updated_at FROM categoria_producto;
 
 END
 GO
@@ -317,7 +326,17 @@ AS
 BEGIN
 
 SELECT
-p.*,
+p.id_producto,
+p.id_categoria,
+p.nombre,
+p.desc_corta,
+p.desc_completa,
+p.precio,
+p.requiere_preparacion,
+p.estado,
+p.created_at,
+p.updated_at,
+p.updated_by,
 c.nombre categoria
 FROM producto p
 INNER JOIN categoria_producto c
@@ -333,23 +352,22 @@ AUTENTICACION
 
 CREATE OR ALTER PROC sp_login
 (
-@correo VARCHAR(100),
-@password VARCHAR(255)
+@correo VARCHAR(100)
 )
 AS
 BEGIN
 
-SELECT TOP 1
+SELECT
 u.id_usuario,
 u.nombre_usuario,
 u.correo_usuario,
+u.contra_hash,
 r.nombre_rol
 FROM usuario u
 INNER JOIN rol r
 ON r.id_rol=u.id_rol
 WHERE
 u.correo_usuario=@correo
-AND u.contra_hash=@password
 AND u.estado=1;
 
 END
@@ -520,7 +538,19 @@ CREATE OR ALTER PROC sp_listar_cola_cocina
 AS
 BEGIN
 
-SELECT *
+SELECT
+id_detalle_pedido,
+id_pedido,
+id_producto,
+cantidad,
+precio_unitario,
+subtotal,
+observacion,
+estado_detalle,
+es_adicional,
+fecha_registro,
+updated_at,
+updated_by
 FROM detalle_pedido
 WHERE estado_detalle
 IN
@@ -553,7 +583,19 @@ CREATE OR ALTER PROC sp_productos_listos
 AS
 BEGIN
 
-SELECT *
+SELECT
+id_detalle_pedido,
+id_pedido,
+id_producto,
+cantidad,
+precio_unitario,
+subtotal,
+observacion,
+estado_detalle,
+es_adicional,
+fecha_registro,
+updated_at,
+updated_by
 FROM detalle_pedido
 WHERE estado_detalle='Listo para servir';
 
@@ -604,7 +646,14 @@ CREATE OR ALTER PROC sp_historial_estado_detalle
 AS
 BEGIN
 
-SELECT *
+SELECT
+id_auditoria,
+id_detalle_pedido,
+estado_anterior,
+estado_nuevo,
+fecha_cambio,
+id_usuario,
+observacion
 FROM auditoria_estado_detalle_pedido
 WHERE id_detalle_pedido=@detalle;
 
@@ -618,7 +667,19 @@ VISTAS
 
 CREATE OR ALTER VIEW vw_pedidos_activos
 AS
-SELECT *
+SELECT
+id_pedido,
+id_mesa,
+id_mesero,
+fecha_pedido,
+fecha_cierre,
+estado,
+observacion_general,
+subtotal,
+descuento,
+total,
+updated_at,
+updated_by
 FROM pedido
 WHERE estado<>'Cerrado';
 GO
@@ -627,7 +688,18 @@ GO
 CREATE OR ALTER VIEW vw_cola_cocina
 AS
 SELECT
-d.*,
+d.id_detalle_pedido,
+d.id_pedido,
+d.id_producto,
+d.cantidad,
+d.precio_unitario,
+d.subtotal,
+d.observacion,
+d.estado_detalle,
+d.es_adicional,
+d.fecha_registro,
+d.updated_at,
+d.updated_by,
 m.numero mesa
 FROM detalle_pedido d
 INNER JOIN pedido p
@@ -645,7 +717,19 @@ GO
 
 CREATE OR ALTER VIEW vw_historial_pedidos
 AS
-SELECT *
+SELECT
+id_pedido,
+id_mesa,
+id_mesero,
+fecha_pedido,
+fecha_cierre,
+estado,
+observacion_general,
+subtotal,
+descuento,
+total,
+updated_at,
+updated_by
 FROM pedido
 WHERE estado='Cerrado';
 GO

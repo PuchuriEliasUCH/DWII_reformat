@@ -1,15 +1,27 @@
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
 using AltaMesa.web.Data;
 using AltaMesa.web.DTOs;
+using AltaMesa.web.Repositories.Interfaces;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AltaMesa.web.Repositories
 {
-    public class ProductoRepository : BaseRepository
+    public class ProductoRepository : BaseRepository, IProductoRepository
     {
-        public void Crear(CrearProductoDTO dto)
+        private readonly IMapper _mapper;
+
+        public ProductoRepository(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
+
+        public async Task Crear(CrearProductoDTO dto)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_crear_producto"))
@@ -21,30 +33,19 @@ namespace AltaMesa.web.Repositories
                 cmd.Parameters.Add(new SqlParameter("@precio", dto.Precio));
                 cmd.Parameters.Add(new SqlParameter("@prep", dto.Prep));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
-        public List<ProductoDTO> Listar()
+        public async Task<List<ProductoDTO>> Listar()
         {
             using (var ctx = new AltaMesaContext())
             {
-                return ctx.Productos
-                    .Include("Categoria")
-                    .Select(p => new ProductoDTO
-                    {
-                        IdProducto = p.IdProducto,
-                        IdCategoria = p.IdCategoria,
-                        Categoria = p.Categoria.Nombre,
-                        Nombre = p.Nombre,
-                        DescCorta = p.DescCorta,
-                        DescCompleta = p.DescCompleta,
-                        Precio = p.Precio,
-                        RequierePreparacion = p.RequierePreparacion,
-                        Estado = p.Estado
-                    })
-                    .ToList();
+                return await ctx.Productos
+                    .ProjectTo<ProductoDTO>(_mapper.ConfigurationProvider)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
             }
         }
     }

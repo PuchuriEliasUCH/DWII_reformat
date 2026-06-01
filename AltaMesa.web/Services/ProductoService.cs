@@ -1,26 +1,28 @@
-using System.Collections.Generic;
 using AltaMesa.web.DTOs;
-using AltaMesa.web.Repositories;
+using AltaMesa.web.Repositories.Interfaces;
+using AltaMesa.web.Services.Interfaces;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AltaMesa.web.Services
 {
-    public class ProductoService
+    public class ProductoService : IProductoService
     {
-        private readonly ProductoRepository _productoRepository;
+        private readonly IProductoRepository _productoRepository;
 
-        public ProductoService()
+        public ProductoService(IProductoRepository productoRepository)
         {
-            _productoRepository = new ProductoRepository();
+            _productoRepository = productoRepository;
         }
 
-        public void Crear(CrearProductoDTO dto)
+        public async Task Crear(CrearProductoDTO dto)
         {
-            _productoRepository.Crear(dto);
+            await _productoRepository.Crear(dto).ConfigureAwait(false);
         }
 
-        public List<ProductoDTO> Listar()
+        public async Task<List<ProductoDTO>> Listar()
         {
-            return _productoRepository.Listar();
+            return await _productoRepository.Listar().ConfigureAwait(false);
         }
     }
 }

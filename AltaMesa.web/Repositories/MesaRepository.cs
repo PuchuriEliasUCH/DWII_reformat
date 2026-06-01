@@ -1,15 +1,27 @@
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
 using AltaMesa.web.Data;
 using AltaMesa.web.DTOs;
+using AltaMesa.web.Repositories.Interfaces;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AltaMesa.web.Repositories
 {
-    public class MesaRepository : BaseRepository
+    public class MesaRepository : BaseRepository, IMesaRepository
     {
-        public void Crear(CrearMesaDTO dto)
+        private readonly IMapper _mapper;
+
+        public MesaRepository(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
+
+        public async Task Crear(CrearMesaDTO dto)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_crear_mesa"))
@@ -17,28 +29,23 @@ namespace AltaMesa.web.Repositories
                 cmd.Parameters.Add(new SqlParameter("@numero", dto.Numero));
                 cmd.Parameters.Add(new SqlParameter("@capacidad", dto.Capacidad));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
-        public List<MesaDTO> Listar()
+        public async Task<List<MesaDTO>> Listar()
         {
             using (var ctx = new AltaMesaContext())
             {
-                return ctx.Mesas
-                    .Select(m => new MesaDTO
-                    {
-                        IdMesa = m.IdMesa,
-                        Numero = m.Numero,
-                        Capacidad = m.Capacidad,
-                        Estado = m.Estado
-                    })
-                    .ToList();
+                return await ctx.Mesas
+                    .ProjectTo<MesaDTO>(_mapper.ConfigurationProvider)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
             }
         }
 
-        public void Actualizar(ActualizarMesaDTO dto)
+        public async Task Actualizar(ActualizarMesaDTO dto)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_actualizar_mesa"))
@@ -47,8 +54,8 @@ namespace AltaMesa.web.Repositories
                 cmd.Parameters.Add(new SqlParameter("@capacidad", dto.Capacidad));
                 cmd.Parameters.Add(new SqlParameter("@estado", dto.Estado));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
     }

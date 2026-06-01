@@ -1,16 +1,28 @@
+using AltaMesa.web.Data;
+using AltaMesa.web.DTOs;
+using AltaMesa.web.Repositories.Interfaces;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
-using AltaMesa.web.Data;
-using AltaMesa.web.DTOs;
+using System.Threading.Tasks;
 
 namespace AltaMesa.web.Repositories
 {
-    public class PedidoRepository : BaseRepository
+    public class PedidoRepository : BaseRepository, IPedidoRepository
     {
-        public int Crear(CrearPedidoDTO dto)
+        private readonly IMapper _mapper;
+
+        public PedidoRepository(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
+
+        public async Task<int> Crear(CrearPedidoDTO dto)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_crear_pedido"))
@@ -19,13 +31,13 @@ namespace AltaMesa.web.Repositories
                 cmd.Parameters.Add(new SqlParameter("@mesero", dto.Mesero));
                 cmd.Parameters.Add(new SqlParameter("@obs", (object)dto.Obs ?? DBNull.Value));
 
-                conn.Open();
-                var result = cmd.ExecuteScalar();
+                await conn.OpenAsync().ConfigureAwait(false);
+                var result = await cmd.ExecuteScalarAsync().ConfigureAwait(false);
                 return result != null && result != DBNull.Value ? Convert.ToInt32(result) : 0;
             }
         }
 
-        public void AgregarDetalle(AgregarDetalleDTO dto)
+        public async Task AgregarDetalle(AgregarDetalleDTO dto)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_agregar_detalle_pedido"))
@@ -35,12 +47,12 @@ namespace AltaMesa.web.Repositories
                 cmd.Parameters.Add(new SqlParameter("@cantidad", dto.Cantidad));
                 cmd.Parameters.Add(new SqlParameter("@obs", (object)dto.Obs ?? DBNull.Value));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
-        public void AgregarAdicional(AgregarDetalleDTO dto)
+        public async Task AgregarAdicional(AgregarDetalleDTO dto)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_agregar_adicional_pedido"))
@@ -49,35 +61,36 @@ namespace AltaMesa.web.Repositories
                 cmd.Parameters.Add(new SqlParameter("@producto", dto.Producto));
                 cmd.Parameters.Add(new SqlParameter("@cantidad", dto.Cantidad));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
-        public void Cerrar(int pedidoId)
+        public async Task Cerrar(int pedidoId)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_cerrar_pedido"))
             {
                 cmd.Parameters.Add(new SqlParameter("@pedido", pedidoId));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
-        public string ObtenerEstadoDetalle(int detalleId)
+        public async Task<string> ObtenerEstadoDetalle(int detalleId)
         {
             using (var ctx = new AltaMesaContext())
             {
-                return ctx.DetallesPedido
+                return await ctx.DetallesPedido
                     .Where(d => d.IdDetallePedido == detalleId)
                     .Select(d => d.EstadoDetalle)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync()
+                    .ConfigureAwait(false);
             }
         }
 
-        public void CambiarEstadoDetalle(int detalleId, string estado)
+        public async Task CambiarEstadoDetalle(int detalleId, string estado)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_cambiar_estado_detalle"))
@@ -85,12 +98,12 @@ namespace AltaMesa.web.Repositories
                 cmd.Parameters.Add(new SqlParameter("@detalle", detalleId));
                 cmd.Parameters.Add(new SqlParameter("@estado", estado));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
-        public void RegistrarAuditoria(int detalleId, string anterior, string nuevo, int usuarioId, string obs)
+        public async Task RegistrarAuditoria(int detalleId, string anterior, string nuevo, int usuarioId, string obs)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_registrar_auditoria_estado"))
@@ -101,118 +114,57 @@ namespace AltaMesa.web.Repositories
                 cmd.Parameters.Add(new SqlParameter("@usuario", usuarioId));
                 cmd.Parameters.Add(new SqlParameter("@obs", (object)obs ?? DBNull.Value));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
-        public List<PedidoDTO> ListarActivos()
+        public async Task<List<PedidoDTO>> ListarActivos()
         {
             using (var ctx = new AltaMesaContext())
             {
-                return ctx.Pedidos
+                return await ctx.Pedidos
                     .Where(p => p.Estado != "Cerrado" && p.Estado != "Anulado")
-                    .Select(p => new PedidoDTO
-                    {
-                        IdPedido = p.IdPedido,
-                        IdMesa = p.IdMesa,
-                        NumeroMesa = p.Mesa.Numero,
-                        IdMesero = p.IdMesero,
-                        NombreMesero = p.Mesero.NombreUsuario + " " + p.Mesero.ApellidoUsuario,
-                        FechaPedido = p.FechaPedido,
-                        FechaCierre = p.FechaCierre,
-                        Estado = p.Estado,
-                        ObservacionGeneral = p.ObservacionGeneral,
-                        Subtotal = p.Subtotal,
-                        Descuento = p.Descuento,
-                        Total = p.Total
-                    })
-                    .ToList();
+                    .ProjectTo<PedidoDTO>(_mapper.ConfigurationProvider)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
             }
         }
 
-        public PedidoDTO ObtenerPorId(int id)
+        public async Task<PedidoDTO> ObtenerPorId(int id)
         {
             using (var ctx = new AltaMesaContext())
             {
-                return ctx.Pedidos
+                return await ctx.Pedidos
                     .Where(p => p.IdPedido == id)
-                    .Select(p => new PedidoDTO
-                    {
-                        IdPedido = p.IdPedido,
-                        IdMesa = p.IdMesa,
-                        NumeroMesa = p.Mesa.Numero,
-                        IdMesero = p.IdMesero,
-                        NombreMesero = p.Mesero.NombreUsuario + " " + p.Mesero.ApellidoUsuario,
-                        FechaPedido = p.FechaPedido,
-                        FechaCierre = p.FechaCierre,
-                        Estado = p.Estado,
-                        ObservacionGeneral = p.ObservacionGeneral,
-                        Subtotal = p.Subtotal,
-                        Descuento = p.Descuento,
-                        Total = p.Total,
-                        Detalles = p.Detalles.Select(d => new DetallePedidoDTO
-                        {
-                            IdDetallePedido = d.IdDetallePedido,
-                            IdPedido = d.IdPedido,
-                            IdProducto = d.IdProducto,
-                            NombreProducto = d.Producto.Nombre,
-                            Cantidad = d.Cantidad,
-                            PrecioUnitario = d.PrecioUnitario,
-                            Subtotal = d.Subtotal,
-                            Observacion = d.Observacion,
-                            EstadoDetalle = d.EstadoDetalle,
-                            EsAdicional = d.EsAdicional,
-                            FechaRegistro = d.FechaRegistro
-                        }).ToList()
-                    })
-                    .FirstOrDefault();
+                    .ProjectTo<PedidoDTO>(_mapper.ConfigurationProvider)
+                    .FirstOrDefaultAsync()
+                    .ConfigureAwait(false);
             }
         }
 
-        public List<DetallePedidoDTO> ObtenerDetalles(int pedidoId)
+        public async Task<List<DetallePedidoDTO>> ObtenerDetalles(int pedidoId)
         {
             using (var ctx = new AltaMesaContext())
             {
-                return ctx.DetallesPedido
+                return await ctx.DetallesPedido
                     .Where(d => d.IdPedido == pedidoId)
-                    .Select(d => new DetallePedidoDTO
-                    {
-                        IdDetallePedido = d.IdDetallePedido,
-                        IdPedido = d.IdPedido,
-                        IdProducto = d.IdProducto,
-                        NombreProducto = d.Producto.Nombre,
-                        Cantidad = d.Cantidad,
-                        PrecioUnitario = d.PrecioUnitario,
-                        Subtotal = d.Subtotal,
-                        Observacion = d.Observacion,
-                        EstadoDetalle = d.EstadoDetalle,
-                        EsAdicional = d.EsAdicional,
-                        FechaRegistro = d.FechaRegistro
-                    })
-                    .ToList();
+                    .ProjectTo<DetallePedidoDTO>(_mapper.ConfigurationProvider)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
             }
         }
 
-        public List<CocinaDTO> ListarColaCocina()
+        public async Task<List<CocinaDTO>> ListarColaCocina()
         {
             using (var ctx = new AltaMesaContext())
             {
                 var estados = new[] { "Ingresado", "En preparacion", "Listo para servir" };
-                return ctx.DetallesPedido
+                return await ctx.DetallesPedido
                     .Where(d => estados.Contains(d.EstadoDetalle))
-                    .Select(d => new CocinaDTO
-                    {
-                        IdDetallePedido = d.IdDetallePedido,
-                        IdPedido = d.IdPedido,
-                        NombreProducto = d.Producto.Nombre,
-                        NumeroMesa = d.Pedido.Mesa.Numero,
-                        Cantidad = d.Cantidad,
-                        Observacion = d.Observacion,
-                        EstadoDetalle = d.EstadoDetalle,
-                        FechaRegistro = d.FechaRegistro
-                    })
-                    .ToList();
+                    .ProjectTo<CocinaDTO>(_mapper.ConfigurationProvider)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
             }
         }
     }

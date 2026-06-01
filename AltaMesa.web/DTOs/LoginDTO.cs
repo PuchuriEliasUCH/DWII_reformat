@@ -6,6 +6,7 @@ namespace AltaMesa.web.DTOs
         public string NombreUsuario { get; set; }
         public string CorreoUsuario { get; set; }
         public string NombreRol { get; set; }
+        public string ContraHash { get; set; }
     }
 
     public class LoginRequestDTO

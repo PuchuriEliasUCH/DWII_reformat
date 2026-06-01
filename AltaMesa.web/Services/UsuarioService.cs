@@ -1,37 +1,39 @@
-using System.Collections.Generic;
 using AltaMesa.web.DTOs;
-using AltaMesa.web.Repositories;
+using AltaMesa.web.Repositories.Interfaces;
+using AltaMesa.web.Services.Interfaces;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AltaMesa.web.Services
 {
-    public class UsuarioService
+    public class UsuarioService : IUsuarioService
     {
-        private readonly UsuarioRepository _usuarioRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
 
-        public UsuarioService()
+        public UsuarioService(IUsuarioRepository usuarioRepository)
         {
-            _usuarioRepository = new UsuarioRepository();
+            _usuarioRepository = usuarioRepository;
         }
 
-        public void Crear(CrearUsuarioDTO dto)
+        public async Task Crear(CrearUsuarioDTO dto)
         {
             dto.Password = AuthService.HashPassword(dto.Password);
-            _usuarioRepository.Crear(dto);
+            await _usuarioRepository.Crear(dto).ConfigureAwait(false);
         }
 
-        public List<UsuarioDTO> Listar()
+        public async Task<List<UsuarioDTO>> Listar()
         {
-            return _usuarioRepository.Listar();
+            return await _usuarioRepository.Listar().ConfigureAwait(false);
         }
 
-        public void Actualizar(ActualizarUsuarioDTO dto)
+        public async Task Actualizar(ActualizarUsuarioDTO dto)
         {
-            _usuarioRepository.Actualizar(dto);
+            await _usuarioRepository.Actualizar(dto).ConfigureAwait(false);
         }
 
-        public void Eliminar(int id)
+        public async Task Eliminar(int id)
         {
-            _usuarioRepository.Eliminar(id);
+            await _usuarioRepository.Eliminar(id).ConfigureAwait(false);
         }
     }
 }

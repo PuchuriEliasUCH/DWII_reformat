@@ -1,28 +1,32 @@
-using System.Linq;
-using System.Web.Mvc;
 using AltaMesa.web.Constants;
 using AltaMesa.web.DTOs;
 using AltaMesa.web.Filters;
 using AltaMesa.web.Models.ViewModels;
-using AltaMesa.web.Services;
+using AltaMesa.web.Services.Interfaces;
+using AutoMapper;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace AltaMesa.web.Controllers
 {
     [AutorizarRol]
     public class MesaController : Controller
     {
-        private readonly MesaService _mesaService;
+        private readonly IMesaService _mesaService;
+        private readonly IMapper _mapper;
 
-        public MesaController()
+        public MesaController(IMesaService mesaService, IMapper mapper)
         {
-            _mesaService = new MesaService();
+            _mesaService = mesaService;
+            _mapper = mapper;
         }
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
             var vm = new MesaListaVM
             {
-                Mesas = _mesaService.Listar()
+                Mesas = await _mesaService.Listar()
             };
             return View(vm);
         }
@@ -43,7 +47,7 @@ namespace AltaMesa.web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Crear(MesaCrearVM model)
+        public async Task<ActionResult> Crear(MesaCrearVM model)
         {
             if (!ModelState.IsValid)
             {
@@ -56,50 +60,41 @@ namespace AltaMesa.web.Controllers
                 return View(model);
             }
 
-            _mesaService.Crear(new CrearMesaDTO
-            {
-                Numero = model.Numero,
-                Capacidad = model.Capacidad
-            });
+            await _mesaService.Crear(_mapper.Map<CrearMesaDTO>(model));
 
             TempData["Success"] = "Mesa creada exitosamente";
             return RedirectToAction("Index");
         }
 
-        public ActionResult Editar(int id)
+        public async Task<ActionResult> Editar(int id)
         {
-            var mesa = _mesaService.Listar().FirstOrDefault(m => m.IdMesa == id);
+            var mesas = await _mesaService.Listar();
+            var mesa = mesas.FirstOrDefault(m => m.IdMesa == id);
             if (mesa == null) return HttpNotFound();
 
-            var vm = new MesaEditarVM
+            var vm = _mapper.Map<MesaEditarVM>(mesa);
+            vm.Capacidades = new[] { 2, 4, 6, 8 }
+                .Select(c => new SelectListItem
+                {
+                    Value = c.ToString(),
+                    Text = c.ToString() + " personas"
+                }).ToList();
+            vm.Estados = new[]
             {
-                IdMesa = mesa.IdMesa,
-                Numero = mesa.Numero,
-                Capacidad = mesa.Capacidad,
-                Estado = mesa.Estado,
-                Capacidades = new[] { 2, 4, 6, 8 }
-                    .Select(c => new SelectListItem
-                    {
-                        Value = c.ToString(),
-                        Text = c.ToString() + " personas"
-                    }).ToList(),
-                Estados = new[]
-                {
-                    MesaEstado.Disponible,
-                    MesaEstado.Ocupada,
-                    MesaEstado.Inhabilitada
-                }.Select(e => new SelectListItem
-                {
-                    Value = e,
-                    Text = e
-                }).ToList()
-            };
+                MesaEstado.Disponible,
+                MesaEstado.Ocupada,
+                MesaEstado.Inhabilitada
+            }.Select(e => new SelectListItem
+            {
+                Value = e,
+                Text = e
+            }).ToList();
             return View(vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Editar(MesaEditarVM model)
+        public async Task<ActionResult> Editar(MesaEditarVM model)
         {
             if (!ModelState.IsValid)
             {
@@ -122,12 +117,7 @@ namespace AltaMesa.web.Controllers
                 return View(model);
             }
 
-            _mesaService.Actualizar(new ActualizarMesaDTO
-            {
-                Id = model.IdMesa,
-                Capacidad = model.Capacidad,
-                Estado = model.Estado
-            });
+            await _mesaService.Actualizar(_mapper.Map<ActualizarMesaDTO>(model));
 
             TempData["Success"] = "Mesa actualizada exitosamente";
             return RedirectToAction("Index");

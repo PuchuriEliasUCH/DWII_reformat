@@ -1,36 +1,38 @@
-using System.Collections.Generic;
 using AltaMesa.web.DTOs;
-using AltaMesa.web.Repositories;
+using AltaMesa.web.Repositories.Interfaces;
+using AltaMesa.web.Services.Interfaces;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AltaMesa.web.Services
 {
-    public class CategoriaService
+    public class CategoriaService : ICategoriaService
     {
-        private readonly CategoriaRepository _categoriaRepository;
+        private readonly ICategoriaRepository _categoriaRepository;
 
-        public CategoriaService()
+        public CategoriaService(ICategoriaRepository categoriaRepository)
         {
-            _categoriaRepository = new CategoriaRepository();
+            _categoriaRepository = categoriaRepository;
         }
 
-        public void Crear(CrearCategoriaDTO dto)
+        public async Task Crear(CrearCategoriaDTO dto)
         {
-            _categoriaRepository.Crear(dto);
+            await _categoriaRepository.Crear(dto).ConfigureAwait(false);
         }
 
-        public void Actualizar(ActualizarCategoriaDTO dto)
+        public async Task Actualizar(ActualizarCategoriaDTO dto)
         {
-            _categoriaRepository.Actualizar(dto);
+            await _categoriaRepository.Actualizar(dto).ConfigureAwait(false);
         }
 
-        public void Desactivar(int id)
+        public async Task Desactivar(int id)
         {
-            _categoriaRepository.Desactivar(id);
+            await _categoriaRepository.Desactivar(id).ConfigureAwait(false);
         }
 
-        public List<CategoriaDTO> Listar()
+        public async Task<List<CategoriaDTO>> Listar()
         {
-            return _categoriaRepository.Listar();
+            return await _categoriaRepository.Listar().ConfigureAwait(false);
         }
     }
 }

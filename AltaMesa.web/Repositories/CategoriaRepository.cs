@@ -1,16 +1,28 @@
+using AltaMesa.web.Data;
+using AltaMesa.web.DTOs;
+using AltaMesa.web.Repositories.Interfaces;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
-using AltaMesa.web.Data;
-using AltaMesa.web.DTOs;
+using System.Threading.Tasks;
 
 namespace AltaMesa.web.Repositories
 {
-    public class CategoriaRepository : BaseRepository
+    public class CategoriaRepository : BaseRepository, ICategoriaRepository
     {
-        public void Crear(CrearCategoriaDTO dto)
+        private readonly IMapper _mapper;
+
+        public CategoriaRepository(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
+
+        public async Task Crear(CrearCategoriaDTO dto)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_crear_categoria"))
@@ -18,12 +30,12 @@ namespace AltaMesa.web.Repositories
                 cmd.Parameters.Add(new SqlParameter("@nombre", dto.Nombre));
                 cmd.Parameters.Add(new SqlParameter("@descripcion", dto.Descripcion));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
-        public void Actualizar(ActualizarCategoriaDTO dto)
+        public async Task Actualizar(ActualizarCategoriaDTO dto)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_actualizar_categoria"))
@@ -32,36 +44,31 @@ namespace AltaMesa.web.Repositories
                 cmd.Parameters.Add(new SqlParameter("@nombre", dto.Nombre));
                 cmd.Parameters.Add(new SqlParameter("@descripcion", dto.Descripcion));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
-        public void Desactivar(int id)
+        public async Task Desactivar(int id)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_desactivar_categoria"))
             {
                 cmd.Parameters.Add(new SqlParameter("@id_categoria", id));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
-        public List<CategoriaDTO> Listar()
+        public async Task<List<CategoriaDTO>> Listar()
         {
             using (var ctx = new AltaMesaContext())
             {
-                return ctx.Categorias
-                    .Select(c => new CategoriaDTO
-                    {
-                        IdCategoria = c.IdCategoria,
-                        Nombre = c.Nombre,
-                        Descripcion = c.Descripcion,
-                        Estado = c.Estado
-                    })
-                    .ToList();
+                return await ctx.Categorias
+                    .ProjectTo<CategoriaDTO>(_mapper.ConfigurationProvider)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
             }
         }
     }

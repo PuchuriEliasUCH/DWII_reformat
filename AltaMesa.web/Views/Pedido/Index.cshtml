@@ -51,3 +51,17 @@
         </div>
     }
 </div>
+
+@section scripts {
+    <script>
+        $(function () {
+            var pedidoHub = $.connection.pedidoHub;
+            pedidoHub.client.nuevoPedido = function () { location.reload(); };
+            pedidoHub.client.actualizarPedido = function () { location.reload(); };
+            pedidoHub.client.pedidoCerrado = function () { location.reload(); };
+            $.connection.hub.start().done(function () {
+                pedidoHub.server.joinGroup();
+            });
+        });
+    </script>
+}

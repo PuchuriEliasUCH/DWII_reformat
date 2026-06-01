@@ -1,31 +1,33 @@
-using System.Collections.Generic;
 using AltaMesa.web.DTOs;
-using AltaMesa.web.Repositories;
+using AltaMesa.web.Repositories.Interfaces;
+using AltaMesa.web.Services.Interfaces;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AltaMesa.web.Services
 {
-    public class MesaService
+    public class MesaService : IMesaService
     {
-        private readonly MesaRepository _mesaRepository;
+        private readonly IMesaRepository _mesaRepository;
 
-        public MesaService()
+        public MesaService(IMesaRepository mesaRepository)
         {
-            _mesaRepository = new MesaRepository();
+            _mesaRepository = mesaRepository;
         }
 
-        public void Crear(CrearMesaDTO dto)
+        public async Task Crear(CrearMesaDTO dto)
         {
-            _mesaRepository.Crear(dto);
+            await _mesaRepository.Crear(dto).ConfigureAwait(false);
         }
 
-        public List<MesaDTO> Listar()
+        public async Task<List<MesaDTO>> Listar()
         {
-            return _mesaRepository.Listar();
+            return await _mesaRepository.Listar().ConfigureAwait(false);
         }
 
-        public void Actualizar(ActualizarMesaDTO dto)
+        public async Task Actualizar(ActualizarMesaDTO dto)
         {
-            _mesaRepository.Actualizar(dto);
+            await _mesaRepository.Actualizar(dto).ConfigureAwait(false);
         }
     }
 }

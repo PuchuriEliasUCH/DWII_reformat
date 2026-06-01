@@ -1,5 +1,6 @@
-﻿using System.Web.Mvc;
-using AltaMesa.web.Helpers;
+﻿using AltaMesa.web.Helpers;
+using System;
+using System.Web.Mvc;
 
 namespace AltaMesa.web.Controllers
 {
@@ -12,15 +13,16 @@ namespace AltaMesa.web.Controllers
 
             var rol = SessionHelper.GetUsuarioRol();
 
-            if (rol == "Administrador")
+            if (string.Equals(rol, "admin", StringComparison.OrdinalIgnoreCase))
                 return RedirectToAction("Index", "Dashboard");
 
-            if (rol == "Mesero")
+            if (string.Equals(rol, "mesero", StringComparison.OrdinalIgnoreCase))
                 return RedirectToAction("Index", "Pedido");
 
-            if (rol == "Chef")
+            if (string.Equals(rol, "chef", StringComparison.OrdinalIgnoreCase))
                 return RedirectToAction("Index", "Cocina");
 
+            SessionHelper.DestroySession();
             return RedirectToAction("Login", "Auth");
         }
     }

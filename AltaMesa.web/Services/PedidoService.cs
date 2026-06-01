@@ -1,64 +1,70 @@
-using System.Collections.Generic;
-using System.Linq;
 using AltaMesa.web.DTOs;
-using AltaMesa.web.Repositories;
+using AltaMesa.web.Repositories.Interfaces;
+using AltaMesa.web.Services.Interfaces;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Transactions;
 
 namespace AltaMesa.web.Services
 {
-    public class PedidoService
+    public class PedidoService : IPedidoService
     {
-        private readonly PedidoRepository _pedidoRepository;
+        private readonly IPedidoRepository _pedidoRepository;
 
-        public PedidoService()
+        public PedidoService(IPedidoRepository pedidoRepository)
         {
-            _pedidoRepository = new PedidoRepository();
+            _pedidoRepository = pedidoRepository;
         }
 
-        public int CrearPedido(CrearPedidoDTO dto)
+        public async Task<int> CrearPedido(CrearPedidoDTO dto)
         {
-            return _pedidoRepository.Crear(dto);
+            return await _pedidoRepository.Crear(dto).ConfigureAwait(false);
         }
 
-        public void AgregarDetalle(AgregarDetalleDTO dto)
+        public async Task AgregarDetalle(AgregarDetalleDTO dto)
         {
-            _pedidoRepository.AgregarDetalle(dto);
+            await _pedidoRepository.AgregarDetalle(dto).ConfigureAwait(false);
         }
 
-        public void AgregarAdicional(AgregarDetalleDTO dto)
+        public async Task AgregarAdicional(AgregarDetalleDTO dto)
         {
-            _pedidoRepository.AgregarAdicional(dto);
+            await _pedidoRepository.AgregarAdicional(dto).ConfigureAwait(false);
         }
 
-        public void CerrarPedido(int pedidoId)
+        public async Task CerrarPedido(int pedidoId)
         {
-            _pedidoRepository.Cerrar(pedidoId);
+            await _pedidoRepository.Cerrar(pedidoId).ConfigureAwait(false);
         }
 
-        public List<PedidoDTO> ListarActivos()
+        public async Task<List<PedidoDTO>> ListarActivos()
         {
-            return _pedidoRepository.ListarActivos();
+            return await _pedidoRepository.ListarActivos().ConfigureAwait(false);
         }
 
-        public PedidoDTO ObtenerPedido(int id)
+        public async Task<PedidoDTO> ObtenerPedido(int id)
         {
-            return _pedidoRepository.ObtenerPorId(id);
+            return await _pedidoRepository.ObtenerPorId(id).ConfigureAwait(false);
         }
 
-        public List<DetallePedidoDTO> ObtenerDetalles(int pedidoId)
+        public async Task<List<DetallePedidoDTO>> ObtenerDetalles(int pedidoId)
         {
-            return _pedidoRepository.ObtenerDetalles(pedidoId);
+            return await _pedidoRepository.ObtenerDetalles(pedidoId).ConfigureAwait(false);
         }
 
-        public List<CocinaDTO> ListarColaCocina()
+        public async Task<List<CocinaDTO>> ListarColaCocina()
         {
-            return _pedidoRepository.ListarColaCocina();
+            return await _pedidoRepository.ListarColaCocina().ConfigureAwait(false);
         }
 
-        public void CambiarEstadoDetalle(int detalleId, string nuevoEstado, int usuarioId, string observacion = null)
+        public async Task CambiarEstadoDetalle(int detalleId, string nuevoEstado, int usuarioId, string observacion = null)
         {
-            var estadoAnterior = _pedidoRepository.ObtenerEstadoDetalle(detalleId);
-            _pedidoRepository.CambiarEstadoDetalle(detalleId, nuevoEstado);
-            _pedidoRepository.RegistrarAuditoria(detalleId, estadoAnterior, nuevoEstado, usuarioId, observacion);
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                var estadoAnterior = await _pedidoRepository.ObtenerEstadoDetalle(detalleId).ConfigureAwait(false);
+                await _pedidoRepository.CambiarEstadoDetalle(detalleId, nuevoEstado).ConfigureAwait(false);
+                await _pedidoRepository.RegistrarAuditoria(detalleId, estadoAnterior, nuevoEstado, usuarioId, observacion).ConfigureAwait(false);
+                scope.Complete();
+            }
         }
     }
 }

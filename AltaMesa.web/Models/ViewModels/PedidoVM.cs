@@ -1,7 +1,7 @@
+using AltaMesa.web.DTOs;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
-using AltaMesa.web.DTOs;
 
 namespace AltaMesa.web.Models.ViewModels
 {

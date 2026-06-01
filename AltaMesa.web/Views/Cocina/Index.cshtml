@@ -103,3 +103,16 @@
         </div>
     </div>
 </div>
+
+@section scripts {
+    <script>
+        $(function () {
+            var cocinaHub = $.connection.cocinaHub;
+            cocinaHub.client.nuevoDetalleCocina = function () { location.reload(); };
+            cocinaHub.client.actualizarDetalleCocina = function () { location.reload(); };
+            $.connection.hub.start().done(function () {
+                cocinaHub.server.joinGroup();
+            });
+        });
+    </script>
+}

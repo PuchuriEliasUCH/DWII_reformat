@@ -90,7 +90,7 @@
                 </div>
                 <nav class="mt-2">
                     <ul class="nav flex-column">
-                        @if (usuarioRol == "Administrador")
+                        @if (string.Equals(usuarioRol, "admin", StringComparison.OrdinalIgnoreCase))
                         {
                             <li class="nav-item">
                                 @Html.ActionLink("Dashboard", "Index", "Dashboard", new { area = "" }, new { @class = "nav-link" })
@@ -99,13 +99,13 @@
                         <li class="nav-item">
                             @Html.ActionLink("Pedidos", "Index", "Pedido", new { area = "" }, new { @class = "nav-link" })
                         </li>
-                        @if (usuarioRol == "Administrador" || usuarioRol == "Mesero")
+                        @if (string.Equals(usuarioRol, "admin", StringComparison.OrdinalIgnoreCase) || string.Equals(usuarioRol, "mesero", StringComparison.OrdinalIgnoreCase))
                         {
                             <li class="nav-item">
                                 @Html.ActionLink("Mesas", "Index", "Mesa", new { area = "" }, new { @class = "nav-link" })
                             </li>
                         }
-                        @if (usuarioRol == "Administrador")
+                        @if (string.Equals(usuarioRol, "admin", StringComparison.OrdinalIgnoreCase))
                         {
                             <li class="nav-item">
                                 @Html.ActionLink("Usuarios", "Index", "Usuario", new { area = "" }, new { @class = "nav-link" })
@@ -117,7 +117,7 @@
                                 @Html.ActionLink("Productos", "Index", "Producto", new { area = "" }, new { @class = "nav-link" })
                             </li>
                         }
-                        @if (usuarioRol == "Chef")
+                        @if (string.Equals(usuarioRol, "chef", StringComparison.OrdinalIgnoreCase))
                         {
                             <li class="nav-item">
                                 @Html.ActionLink("Cocina", "Index", "Cocina", new { area = "" }, new { @class = "nav-link" })
@@ -160,6 +160,7 @@
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/signalr")
+    <script src="/signalr/hubs"></script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

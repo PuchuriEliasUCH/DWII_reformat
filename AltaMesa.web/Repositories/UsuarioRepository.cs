@@ -1,24 +1,35 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
 using AltaMesa.web.Data;
 using AltaMesa.web.DTOs;
+using AltaMesa.web.Repositories.Interfaces;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AltaMesa.web.Repositories
 {
-    public class UsuarioRepository : BaseRepository
+    public class UsuarioRepository : BaseRepository, IUsuarioRepository
     {
-        public LoginDTO Login(string correo, string password)
+        private readonly IMapper _mapper;
+
+        public UsuarioRepository(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
+
+        public async Task<LoginDTO> ObtenerPorCorreo(string correo)
         {
             using (var ctx = new AltaMesaContext())
             {
-                var user = ctx.Usuarios
+                var user = await ctx.Usuarios
                     .Include("Rol")
-                    .FirstOrDefault(u => u.CorreoUsuario == correo
-                                     && u.ContraHash == password
-                                     && u.Estado);
+                    .FirstOrDefaultAsync(u => u.CorreoUsuario == correo
+                                           && u.Estado)
+                    .ConfigureAwait(false);
 
                 if (user == null) return null;
 
@@ -27,12 +38,13 @@ namespace AltaMesa.web.Repositories
                     IdUsuario = user.IdUsuario,
                     NombreUsuario = user.NombreUsuario,
                     CorreoUsuario = user.CorreoUsuario,
-                    NombreRol = user.Rol.NombreRol
+                    NombreRol = user.Rol.NombreRol,
+                    ContraHash = user.ContraHash
                 };
             }
         }
 
-        public void Crear(CrearUsuarioDTO dto)
+        public async Task Crear(CrearUsuarioDTO dto)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_crear_usuario"))
@@ -43,33 +55,23 @@ namespace AltaMesa.web.Repositories
                 cmd.Parameters.Add(new SqlParameter("@correo", dto.Correo));
                 cmd.Parameters.Add(new SqlParameter("@password", dto.Password));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
-        public List<UsuarioDTO> Listar()
+        public async Task<List<UsuarioDTO>> Listar()
         {
             using (var ctx = new AltaMesaContext())
             {
-                return ctx.Usuarios
-                    .Include("Rol")
-                    .Select(u => new UsuarioDTO
-                    {
-                        IdUsuario = u.IdUsuario,
-                        IdRol = u.IdRol,
-                        NombreRol = u.Rol.NombreRol,
-                        NombreUsuario = u.NombreUsuario,
-                        ApellidoUsuario = u.ApellidoUsuario,
-                        CorreoUsuario = u.CorreoUsuario,
-                        Estado = u.Estado,
-                        CreateAt = u.CreateAt
-                    })
-                    .ToList();
+                return await ctx.Usuarios
+                    .ProjectTo<UsuarioDTO>(_mapper.ConfigurationProvider)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
             }
         }
 
-        public void Actualizar(ActualizarUsuarioDTO dto)
+        public async Task Actualizar(ActualizarUsuarioDTO dto)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_actualizar_usuario"))
@@ -81,20 +83,20 @@ namespace AltaMesa.web.Repositories
                 cmd.Parameters.Add(new SqlParameter("@correo", dto.Correo));
                 cmd.Parameters.Add(new SqlParameter("@estado", dto.Estado));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
-        public void Eliminar(int id)
+        public async Task Eliminar(int id)
         {
             using (var conn = GetConnection())
             using (var cmd = GetCommand(conn, "sp_eliminar_usuario"))
             {
                 cmd.Parameters.Add(new SqlParameter("@id_usuario", id));
 
-                conn.Open();
-                cmd.ExecuteNonQuery();
+                await conn.OpenAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
     }

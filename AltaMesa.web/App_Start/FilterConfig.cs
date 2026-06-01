@@ -1,4 +1,4 @@
-﻿using System.Web;
+﻿using AltaMesa.web.App_Start;
 using System.Web.Mvc;
 
 namespace AltaMesa.web
@@ -8,6 +8,7 @@ namespace AltaMesa.web
         public static void RegisterGlobalFilters(GlobalFilterCollection filters)
         {
             filters.Add(new HandleErrorAttribute());
+            FluentValidationConfig.RegisterFilter(filters);
         }
     }
 }

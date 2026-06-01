@@ -1,24 +1,23 @@
-using System.Collections.Generic;
-using System.Linq;
-using AltaMesa.web.Data;
 using AltaMesa.web.DTOs;
+using AltaMesa.web.Repositories.Interfaces;
+using AltaMesa.web.Services.Interfaces;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AltaMesa.web.Services
 {
-    public class RolService
+    public class RolService : IRolService
     {
-        public List<RolDTO> ListarRoles()
+        private readonly IRolRepository _rolRepository;
+
+        public RolService(IRolRepository rolRepository)
         {
-            using (var context = new AltaMesaContext())
-            {
-                return context.Roles
-                    .Select(r => new RolDTO
-                    {
-                        IdRol = r.IdRol,
-                        NombreRol = r.NombreRol
-                    })
-                    .ToList();
-            }
+            _rolRepository = rolRepository;
+        }
+
+        public async Task<List<RolDTO>> ListarRoles()
+        {
+            return await _rolRepository.ListarRoles().ConfigureAwait(false);
         }
     }
 }

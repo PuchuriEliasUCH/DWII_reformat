@@ -1,5 +1,5 @@
-using System.Data.Entity;
 using AltaMesa.web.Models.Entities;
+using System.Data.Entity;
 
 namespace AltaMesa.web.Data
 {

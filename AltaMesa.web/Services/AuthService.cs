@@ -1,51 +1,34 @@
-using System;
-using System.Security.Cryptography;
-using System.Text;
 using AltaMesa.web.DTOs;
-using AltaMesa.web.Helpers;
-using AltaMesa.web.Repositories;
+using AltaMesa.web.Repositories.Interfaces;
+using AltaMesa.web.Services.Interfaces;
+using System.Threading.Tasks;
 
 namespace AltaMesa.web.Services
 {
-    public class AuthService
+    public class AuthService : IAuthService
     {
-        private readonly UsuarioRepository _usuarioRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
 
-        public AuthService()
+        public AuthService(IUsuarioRepository usuarioRepository)
         {
-            _usuarioRepository = new UsuarioRepository();
+            _usuarioRepository = usuarioRepository;
         }
 
-        public LoginDTO Login(string correo, string password)
+        public async Task<LoginDTO> Login(string correo, string password)
         {
-            var hash = HashPassword(password);
-            var usuario = _usuarioRepository.Login(correo, hash);
+            var usuario = await _usuarioRepository.ObtenerPorCorreo(correo).ConfigureAwait(false);
+            if (usuario == null) return null;
 
-            if (usuario != null)
-            {
-                SessionHelper.SetSession(
-                    usuario.IdUsuario,
-                    usuario.NombreUsuario,
-                    usuario.NombreRol,
-                    usuario.CorreoUsuario
-                );
-            }
+            if (!BCrypt.Net.BCrypt.Verify(password, usuario.ContraHash))
+                return null;
 
+            usuario.ContraHash = null;
             return usuario;
-        }
-
-        public void Logout()
-        {
-            SessionHelper.DestroySession();
         }
 
         public static string HashPassword(string password)
         {
-            using (var sha256 = SHA256.Create())
-            {
-                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(bytes);
-            }
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
     }
 }
