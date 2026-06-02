@@ -8,5 +8,8 @@ namespace AltaMesa.web.Services.Interfaces
     {
         Task Crear(CrearProductoDTO dto);
         Task<List<ProductoDTO>> Listar();
+        Task<ProductoDTO> ObtenerPorId(int id);
+        Task Actualizar(ActualizarProductoDTO dto);
+        Task Eliminar(int id);
     }
 }

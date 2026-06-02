@@ -28,30 +28,40 @@ namespace AltaMesa.web.Controllers
             var cola = await _pedidoService.ListarColaCocina();
             var vm = new CocinaListaVM
             {
-                ColaCocina = cola.Where(c => c.EstadoDetalle == DetalleEstado.Ingresado || c.EstadoDetalle == DetalleEstado.EnPreparacion).ToList(),
+                NuevosItems = cola.Where(c => c.EstadoDetalle == DetalleEstado.Ingresado).ToList(),
+                EnPreparacion = cola.Where(c => c.EstadoDetalle == DetalleEstado.EnPreparacion).ToList(),
                 ProductosListos = cola.Where(c => c.EstadoDetalle == DetalleEstado.ListoParaServir).ToList()
             };
             return View(vm);
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<ActionResult> CambiarEstado(int detalleId, string estado)
         {
-            var usuarioId = SessionHelper.GetUsuarioId().GetValueOrDefault();
-            await _pedidoService.CambiarEstadoDetalle(detalleId, estado, usuarioId);
-
-            if (estado == DetalleEstado.ListoParaServir)
+            try
             {
+                var usuarioId = SessionHelper.GetUsuarioId().GetValueOrDefault();
+                await _pedidoService.CambiarEstadoDetalle(detalleId, estado, usuarioId);
+
                 var detalles = await _pedidoService.ListarColaCocina();
                 var detalle = detalles.FirstOrDefault(d => d.IdDetallePedido == detalleId);
+
                 if (detalle != null)
-                    _notificationService.NotificarProductoListo(detalle.IdPedido);
+                {
+                    if (estado == DetalleEstado.ListoParaServir)
+                        _notificationService.NotificarProductoListo(detalle.IdPedido, detalleId, detalle.NombreProducto, detalle.Cantidad);
+
+                    _notificationService.NotificarCambioEstadoDetalle(detalle.IdPedido, detalleId, estado);
+                }
+
+                _notificationService.NotificarActualizarCocina(detalleId);
+
+                return Json(new { success = true });
             }
-
-            _notificationService.NotificarActualizarCocina(detalleId);
-
-            return RedirectToAction("Index");
+            catch (System.Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 }

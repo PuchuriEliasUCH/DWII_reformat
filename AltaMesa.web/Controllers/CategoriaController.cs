@@ -23,7 +23,27 @@ namespace AltaMesa.web.Controllers
         public async Task<ActionResult> Index()
         {
             var categorias = await _categoriaService.Listar();
-            return View(categorias);
+            var conteo = await _categoriaService.ContarProductosPorCategoria();
+            var vm = new AltaMesa.web.Models.ViewModels.CategoriaIndexVM
+            {
+                Categorias = categorias,
+                ConteoProductos = conteo
+            };
+            return View(vm);
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> ObtenerCategoriaJson(int id)
+        {
+            var categorias = await _categoriaService.Listar();
+            var cat = categorias.FirstOrDefault(c => c.IdCategoria == id);
+            if (cat == null) return Json(null, JsonRequestBehavior.AllowGet);
+            return Json(new
+            {
+                cat.IdCategoria,
+                cat.Nombre,
+                cat.Descripcion
+            }, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult Crear()

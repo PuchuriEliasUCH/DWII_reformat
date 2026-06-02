@@ -10,7 +10,7 @@ using System.Web.Mvc;
 
 namespace AltaMesa.web.Controllers
 {
-    [AutorizarRol]
+    [AutorizarRol(Rol = "admin, mesero")]
     public class MesaController : Controller
     {
         private readonly IMesaService _mesaService;
@@ -28,7 +28,29 @@ namespace AltaMesa.web.Controllers
             {
                 Mesas = await _mesaService.Listar()
             };
+            ViewBag.Vista = Session["MesaVista"]?.ToString() ?? "tabla";
             return View(vm);
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> ObtenerMesaJson(int id)
+        {
+            var mesa = await _mesaService.ObtenerPorId(id);
+            if (mesa == null) return Json(null, JsonRequestBehavior.AllowGet);
+            return Json(new
+            {
+                mesa.IdMesa,
+                mesa.Numero,
+                mesa.Capacidad,
+                mesa.Estado
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public ActionResult SetVista(string vista)
+        {
+            Session["MesaVista"] = vista;
+            return Json(new { success = true }, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult Crear()
@@ -68,8 +90,7 @@ namespace AltaMesa.web.Controllers
 
         public async Task<ActionResult> Editar(int id)
         {
-            var mesas = await _mesaService.Listar();
-            var mesa = mesas.FirstOrDefault(m => m.IdMesa == id);
+            var mesa = await _mesaService.ObtenerPorId(id);
             if (mesa == null) return HttpNotFound();
 
             var vm = _mapper.Map<MesaEditarVM>(mesa);
@@ -120,6 +141,44 @@ namespace AltaMesa.web.Controllers
             await _mesaService.Actualizar(_mapper.Map<ActualizarMesaDTO>(model));
 
             TempData["Success"] = "Mesa actualizada exitosamente";
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Inhabilitar(int id)
+        {
+            var mesa = await _mesaService.ObtenerPorId(id);
+            if (mesa == null) return HttpNotFound();
+
+            await _mesaService.Actualizar(new ActualizarMesaDTO
+            {
+                Id = mesa.IdMesa,
+                Numero = mesa.Numero,
+                Capacidad = mesa.Capacidad,
+                Estado = MesaEstado.Inhabilitada
+            });
+
+            TempData["Success"] = "Mesa inhabilitada exitosamente";
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Habilitar(int id)
+        {
+            var mesa = await _mesaService.ObtenerPorId(id);
+            if (mesa == null) return HttpNotFound();
+
+            await _mesaService.Actualizar(new ActualizarMesaDTO
+            {
+                Id = mesa.IdMesa,
+                Numero = mesa.Numero,
+                Capacidad = mesa.Capacidad,
+                Estado = MesaEstado.Disponible
+            });
+
+            TempData["Success"] = "Mesa habilitada exitosamente";
             return RedirectToAction("Index");
         }
     }

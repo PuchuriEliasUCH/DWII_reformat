@@ -1,4 +1,5 @@
 @model AltaMesa.web.Models.ViewModels.DashboardVM
+@using AltaMesa.web.Constants
 
 @{
     ViewBag.Title = "Dashboard";
@@ -9,32 +10,79 @@
 <div class="row g-3 mb-4" id="dashboardCounters">
     <div class="col-md-2 col-6">
         <div class="counter-card">
-            <div class="counter-value" style="color: var(--primary);" id="counterOcupadas">@Model.MesasOcupadas</div>
+            <div class="counter-value" style="color: var(--status-occupied);" id="counterOcupadas">@Model.MesasOcupadas</div>
             <p class="counter-label">Mesas Ocupadas</p>
         </div>
     </div>
     <div class="col-md-2 col-6">
         <div class="counter-card">
-            <div class="counter-value" style="color: var(--secondary);" id="counterDisponibles">@Model.MesasDisponibles</div>
+            <div class="counter-value" style="color: var(--status-success);" id="counterDisponibles">@Model.MesasDisponibles</div>
             <p class="counter-label">Mesas Disponibles</p>
         </div>
     </div>
     <div class="col-md-2 col-6">
         <div class="counter-card">
-            <div class="counter-value" style="color: var(--tertiary);" id="counterPedidos">@Model.PedidosActivos</div>
+            <div class="counter-value" style="color: var(--status-preparing);" id="counterPedidos">@Model.PedidosActivos</div>
             <p class="counter-label">Pedidos Activos</p>
         </div>
     </div>
-    <div class="col-md-3 col-6">
+    <div class="col-md-2 col-6">
         <div class="counter-card">
-            <div class="counter-value" style="color: var(--primary-container);" id="counterPreparacion">@Model.PlatosEnPreparacion</div>
-            <p class="counter-label">Platos en Preparación</p>
+            <div class="counter-value" style="color: var(--status-new-order);" id="counterOrdenesDia">@Model.OrdenesDelDia</div>
+            <p class="counter-label">Órdenes Hoy</p>
         </div>
     </div>
-    <div class="col-md-3 col-6">
+    <div class="col-md-2 col-6">
+        <div class="counter-card">
+            <div class="counter-value" style="color: var(--status-success);" id="counterGanancias">$@Model.GananciasDelDia.ToString("N0")</div>
+            <p class="counter-label">Ganancias Hoy</p>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
         <div class="counter-card">
             <div class="counter-value" style="color: var(--secondary);" id="counterListos">@Model.PlatosListos</div>
             <p class="counter-label">Listos para Servir</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="headline-sm mb-0">Ventas Últimos 7 Días</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="ventasChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="headline-sm mb-0">Productos Más Vendidos</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.ProductosMasVendidos.Any())
+                {
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var p in Model.ProductosMasVendidos.Select((item, index) => new { item, index }))
+                        {
+                            <li class="d-flex align-items-center mb-2">
+                                <span class="badge badge-activo me-2" style="min-width:24px">@(p.index + 1)</span>
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium">@p.item.NombreProducto</div>
+                                    <small class="text-on-surface-variant">@p.item.CantidadTotal vendidos</small>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-on-surface-variant mb-0">Sin datos de ventas</p>
+                }
+            </div>
         </div>
     </div>
 </div>
@@ -94,7 +142,62 @@
 </div>
 
 @section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        var ventasSemana = @Html.Raw(Json.Encode(Model.VentasSemana));
+
+        var fechas = ventasSemana.map(function (v) {
+            var d = new Date(v.Fecha);
+            return d.getDate() + '/' + (d.getMonth() + 1);
+        });
+        var totales = ventasSemana.map(function (v) { return v.TotalVentas; });
+        var cantidades = ventasSemana.map(function (v) { return v.CantidadPedidos; });
+
+        var ctx = document.getElementById('ventasChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: fechas,
+                datasets: [
+                    {
+                        label: 'Ventas ($)',
+                        data: totales,
+                        backgroundColor: 'rgba(139, 69, 33, 0.2)',
+                        borderColor: '#8b4521',
+                        borderWidth: 2,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Pedidos',
+                        data: cantidades,
+                        backgroundColor: 'rgba(89, 105, 58, 0.2)',
+                        borderColor: '#59693a',
+                        borderWidth: 2,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        position: 'left',
+                        title: { display: true, text: 'Ventas ($)' }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        title: { display: true, text: 'Pedidos' }
+                    }
+                }
+            }
+        });
+
         function actualizarCounters() {
             $.getJSON('@Url.Action("GetCounters", "Dashboard")', function (data) {
                 $('#counterOcupadas').text(data.mesasOcupadas);
@@ -102,6 +205,8 @@
                 $('#counterPedidos').text(data.pedidosActivos);
                 $('#counterPreparacion').text(data.platosEnPreparacion);
                 $('#counterListos').text(data.platosListos);
+                $('#counterOrdenesDia').text(data.ordenesDelDia);
+                $('#counterGanancias').text('$' + Number(data.gananciasDelDia).toLocaleString());
             });
         }
 

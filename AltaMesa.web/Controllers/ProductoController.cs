@@ -71,5 +71,52 @@ namespace AltaMesa.web.Controllers
             TempData["Success"] = "Producto creado exitosamente";
             return RedirectToAction("Index");
         }
+
+        public async Task<ActionResult> Editar(int id)
+        {
+            var producto = await _productoService.ObtenerPorId(id);
+            if (producto == null) return HttpNotFound();
+
+            var categorias = await _categoriaService.Listar();
+            var vm = _mapper.Map<ProductoEditarVM>(producto);
+            vm.Categorias = categorias
+                .Select(c => new SelectListItem
+                {
+                    Value = c.IdCategoria.ToString(),
+                    Text = c.Nombre
+                }).ToList();
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Editar(ProductoEditarVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var categorias = await _categoriaService.Listar();
+                model.Categorias = categorias
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.IdCategoria.ToString(),
+                        Text = c.Nombre
+                    }).ToList();
+                return View(model);
+            }
+
+            await _productoService.Actualizar(_mapper.Map<ActualizarProductoDTO>(model));
+
+            TempData["Success"] = "Producto actualizado exitosamente";
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Eliminar(int id)
+        {
+            await _productoService.Eliminar(id);
+            TempData["Success"] = "Producto desactivado exitosamente";
+            return RedirectToAction("Index");
+        }
     }
 }

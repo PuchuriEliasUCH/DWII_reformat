@@ -21,29 +21,51 @@
     <div class="d-flex gap-2">
         @if (Model.Pedido.Estado != "Cerrado" && Model.Pedido.Estado != "Anulado")
         {
-            using (Html.BeginForm("Cerrar", "Pedido", new { id = Model.Pedido.IdPedido }, FormMethod.Post))
-            {
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-secondary" onclick="return confirm('¿Cerrar este pedido?')">Cerrar Pedido</button>
-            }
+            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#resumenCierreModal">Cerrar Pedido</button>
         }
         <a href="@Url.Action("Index")" class="btn btn-outline-primary">Volver</a>
     </div>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
+<div class="alert alert-success @(Model.ItemsListos == null || !Model.ItemsListos.Any() ? "d-none" : "")" id="itemsListosSection">
+    <h5>Items listos para entregar</h5>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Observación</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="tablaItemsListos">
+            @if (Model.ItemsListos != null)
+            {
+                foreach (var item in Model.ItemsListos)
+                {
+                    <tr id="item-@item.IdDetallePedido">
+                        <td>@item.NombreProducto</td>
+                        <td>@item.Cantidad</td>
+                        <td>@item.Observacion</td>
+                        <td>
+                            <button class="btn btn-success btn-sm btn-entregar"
+                                    data-detalle="@item.IdDetallePedido">
+                                Entregar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
 
 <div class="row g-3">
-    <div class="col-md-8">
+    <div class="col-md-7">
         <div class="card mb-4">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="headline-sm mb-0">Productos</h5>
+                <span class="badge badge-activo">@(Model.Pedido.Detalles?.Count ?? 0) items</span>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -63,9 +85,9 @@
                             {
                                 foreach (var d in Model.Pedido.Detalles)
                                 {
-                                    <tr>
-                                        <td>@d.NombreProducto</td>
-                                        <td>@d.Cantidad</td>
+                                    <tr id="detalle-@d.IdDetallePedido">
+                                        <td class="detalle-nombre">@d.NombreProducto</td>
+                                        <td class="detalle-cantidad">@d.Cantidad</td>
                                         <td>$@d.PrecioUnitario.ToString("N2")</td>
                                         <td>$@d.Subtotal.ToString("N2")</td>
                                         <td>
@@ -102,9 +124,44 @@
                 </div>
             </div>
         </div>
+
+        @if (Model.Pedido.Estado != "Cerrado" && Model.Pedido.Estado != "Anulado")
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="headline-sm mb-0">Agregar Productos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <input type="text" id="buscarProducto" class="form-control" placeholder="Buscar producto..." />
+                    </div>
+                    <div class="mb-3 d-flex flex-wrap gap-1" id="filtroCategorias">
+                        <button type="button" class="btn btn-sm btn-primary" data-cat="todas">Todas</button>
+                        @foreach (var cat in Model.Categorias)
+                        {
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-cat="@cat.IdCategoria">@cat.Nombre</button>
+                        }
+                    </div>
+                    <div class="row g-2" id="menuProductos">
+                        @foreach (var p in Model.ProductosConInfo)
+                        {
+                            <div class="col-md-4 col-6 producto-card" data-categoria="@p.IdCategoria" data-nombre="@p.Nombre.ToLower()">
+                                <div class="card h-100 elevation-1" style="cursor:pointer">
+                                    <div class="card-body p-2 text-center" onclick="agregarProducto(@p.IdProducto, '@p.Nombre', @p.Precio.ToString("0.00"))">
+                                        <div class="fw-bold body-sm">@p.Nombre</div>
+                                        <div class="label-sm" style="color:var(--primary)">$@p.Precio.ToString("N2")</div>
+                                        <div class="label-sm text-on-surface-variant">@p.Categoria</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-5">
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="headline-sm mb-0">Resumen</h5>
@@ -113,58 +170,311 @@
                 <p class="mb-1 body-md"><span class="text-on-surface-variant">Mesero:</span> @Model.Pedido.NombreMesero</p>
                 <p class="mb-1 body-md"><span class="text-on-surface-variant">Fecha:</span> @Model.Pedido.FechaPedido.ToString("dd/MM/yyyy HH:mm")</p>
                 <hr style="border-color: var(--outline-variant);" />
-                <p class="mb-1 body-md"><span class="text-on-surface-variant">Subtotal:</span> $@Model.Pedido.Subtotal.ToString("N2")</p>
-                <p class="mb-1 body-md"><span class="text-on-surface-variant">Descuento:</span> $@Model.Pedido.Descuento.ToString("N2")</p>
-                <p class="mb-0 headline-sm" style="color: var(--primary);">Total: $@Model.Pedido.Total.ToString("N2")</p>
+                <p class="mb-1 body-md d-flex justify-content-between">
+                    <span class="text-on-surface-variant">Subtotal:</span>
+                    <span>$@Model.Pedido.Subtotal.ToString("N2")</span>
+                </p>
+                <p class="mb-1 body-md d-flex justify-content-between">
+                    <span class="text-on-surface-variant">Descuento:</span>
+                    <span>$@Model.Pedido.Descuento.ToString("N2")</span>
+                </p>
+                <hr style="border-color: var(--outline-variant);" />
+                <p class="mb-0 headline-sm d-flex justify-content-between" style="color: var(--primary);">
+                    <span>Total:</span>
+                    <span>$@Model.Pedido.Total.ToString("N2")</span>
+                </p>
             </div>
         </div>
 
         @if (Model.Pedido.Estado != "Cerrado" && Model.Pedido.Estado != "Anulado")
         {
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="headline-sm mb-0">Agregar Producto</h5>
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="pedidoId" value="@Model.Pedido.IdPedido" />
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="headline-sm mb-0">Carrito</h5>
+                    <span class="badge badge-activo" id="cartCount">0</span>
                 </div>
-                <div class="card-body">
-                    @using (Html.BeginForm("AgregarDetalle", "Pedido", FormMethod.Post))
-                    {
-                        @Html.AntiForgeryToken()
-                        @Html.Hidden("Pedido.IdPedido", Model.Pedido.IdPedido)
-
-                        <div class="mb-3">
-                            <label class="form-label">Producto</label>
-                            @Html.DropDownList("Producto", Model.Productos, "Seleccione producto", new { @class = "form-select" })
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Cantidad</label>
-                            @Html.TextBox("Cantidad", 1, new { @class = "form-control", type = "number", min = 1 })
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Observación</label>
-                            @Html.TextArea("Obs", null, new { @class = "form-control", rows = 2 })
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100">Agregar</button>
-                    }
+                <div class="card-body p-0">
+                    <div id="cartEmpty" class="text-center text-on-surface-variant py-4 body-sm">
+                        Seleccione productos del menú para agregar al carrito
+                    </div>
+                    <div id="cartItems" class="d-none"></div>
+                </div>
+                <div class="card-footer d-none" id="cartFooter">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="fw-bold">Total:</span>
+                        <span class="fw-bold" id="cartTotal">$0.00</span>
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" id="btnEnviarPedido">
+                        Enviar Pedido
+                    </button>
                 </div>
             </div>
         }
+
+
+    </div>
+</div>
+
+@* Modal Resumen de Cierre *@
+<div class="modal fade" id="resumenCierreModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            @using (Html.BeginForm("Cerrar", "Pedido", new { id = Model.Pedido.IdPedido }, FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Resumen de Cierre - Mesa @Model.Pedido.NumeroMesa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cant.</th>
+                                    <th>P. Unit.</th>
+                                    <th>Subtotal</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Pedido.Detalles != null)
+                                {
+                                    foreach (var d in Model.Pedido.Detalles)
+                                    {
+                                        <tr>
+                                            <td>@d.NombreProducto</td>
+                                            <td>@d.Cantidad</td>
+                                            <td>$@d.PrecioUnitario.ToString("N2")</td>
+                                            <td>$@d.Subtotal.ToString("N2")</td>
+                                            <td>
+                                                <span class="badge
+                                                    @(d.EstadoDetalle == "Entregado" ? "badge-entregado" :
+                                                      d.EstadoDetalle == "Anulado" ? "badge-anulado" :
+                                                      d.EstadoDetalle == "Listo para servir" ? "badge-listo-para-servir" :
+                                                      d.EstadoDetalle == "En preparacion" ? "badge-en-preparacion" :
+                                                      "badge-ingresado")">
+                                                    @d.EstadoDetalle
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><span class="text-on-surface-variant">Mesero:</span> @Model.Pedido.NombreMesero</p>
+                            <p class="mb-1"><span class="text-on-surface-variant">Apertura:</span> @Model.Pedido.FechaPedido.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="mb-1"><span class="text-on-surface-variant">Subtotal:</span> $@Model.Pedido.Subtotal.ToString("N2")</p>
+                            <p class="mb-1"><span class="text-on-surface-variant">Descuento:</span> $@Model.Pedido.Descuento.ToString("N2")</p>
+                            <p class="mb-0 headline-sm" style="color:var(--primary)"><span class="text-on-surface-variant">Total:</span> $@Model.Pedido.Total.ToString("N2")</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-secondary">Confirmar Cierre</button>
+                </div>
+            }
+        </div>
     </div>
 </div>
 
 @section scripts {
     <script>
+        var cart = [];
+        var pedidoId = @Model.Pedido.IdPedido;
+
+        function agregarProducto(id, nombre, precio) {
+            var existente = cart.find(function (i) { return i.id === id; });
+            if (existente) {
+                existente.cant++;
+            } else {
+                cart.push({ id: id, nombre: nombre, precio: precio, cant: 1, obs: '' });
+            }
+            renderCart();
+        }
+
+        function cambiarCantCarrito(id, delta) {
+            var item = cart.find(function (i) { return i.id === id; });
+            if (!item) return;
+            item.cant += delta;
+            if (item.cant < 1) {
+                cart = cart.filter(function (i) { return i.id !== id; });
+            }
+            renderCart();
+        }
+
+        function eliminarDelCarrito(id) {
+            cart = cart.filter(function (i) { return i.id !== id; });
+            renderCart();
+        }
+
+        function actualizarObs(id, obs) {
+            var item = cart.find(function (i) { return i.id === id; });
+            if (item) item.obs = obs;
+        }
+
+        var esAdicional = '@Model.Pedido.Estado' !== 'Abierto';
+
+        function renderCart() {
+            var count = cart.reduce(function (s, i) { return s + i.cant; }, 0);
+            var total = cart.reduce(function (s, i) { return s + i.precio * i.cant; }, 0);
+
+            $('#cartCount').text(count);
+
+            if (cart.length === 0) {
+                $('#cartEmpty').removeClass('d-none');
+                $('#cartItems').addClass('d-none').empty();
+                $('#cartFooter').addClass('d-none');
+                return;
+            }
+
+            $('#cartEmpty').addClass('d-none');
+            $('#cartItems').removeClass('d-none');
+            $('#cartFooter').removeClass('d-none');
+
+            var html = '<div class="list-group list-group-flush">';
+            cart.forEach(function (item, idx) {
+                html += '<div class="list-group-item">';
+                html += '<div class="d-flex justify-content-between align-items-start">';
+                html += '<div class="flex-grow-1">';
+                html += '<div class="fw-bold body-sm">' + item.nombre + '</div>';
+                html += '<div class="label-sm text-on-surface-variant">$' + item.precio.toFixed(2) + ' x ' + item.cant + '</div>';
+                html += '<div class="input-group input-group-sm mt-1" style="max-width:120px">';
+                html += '<button class="btn btn-outline-primary" type="button" onclick="cambiarCantCarrito(' + item.id + ',-1)">-</button>';
+                html += '<input class="form-control text-center" type="text" value="' + item.cant + '" readonly>';
+                html += '<button class="btn btn-outline-primary" type="button" onclick="cambiarCantCarrito(' + item.id + ',1)">+</button>';
+                html += '</div>';
+                html += '<input class="form-control form-control-sm mt-1" type="text" placeholder="Observación" value="' + (item.obs || '') + '" onchange="actualizarObs(' + item.id + ', this.value)" style="font-size:12px">';
+                html += '</div>';
+                html += '<button class="btn btn-sm btn-outline-danger ms-2" onclick="eliminarDelCarrito(' + item.id + ')" title="Eliminar">&times;</button>';
+                html += '</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+            $('#cartItems').html(html);
+            $('#cartTotal').text('$' + total.toFixed(2));
+        }
+
+        $('#btnEnviarPedido').on('click', function () {
+            if (cart.length === 0) return;
+            var btn = $(this);
+            btn.prop('disabled', true).text('Enviando...');
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            var pendientes = cart.slice();
+            var idx = 0;
+            var url = esAdicional
+                ? '@Url.Action("AgregarAdicional", "Pedido")'
+                : '@Url.Action("AgregarDetalle", "Pedido")';
+
+            function enviarSiguiente() {
+                if (idx >= pendientes.length) {
+                    mostrarToast(esAdicional ? 'Adicionales enviados a cocina' : 'Pedido enviado a cocina', 'success');
+                    setTimeout(function () { location.reload(); }, 1000);
+                    return;
+                }
+                var item = pendientes[idx];
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token,
+                        'Pedido.IdPedido': pedidoId,
+                        Producto: item.id,
+                        Cantidad: item.cant,
+                        Obs: item.obs || ''
+                    },
+                    success: function () { idx++; enviarSiguiente(); },
+                    error: function () {
+                        mostrarToast('Error al enviar ' + item.nombre, 'error');
+                        btn.prop('disabled', false).text('Enviar Pedido');
+                    }
+                });
+            }
+
+            enviarSiguiente();
+        });
+
+        $(document).on('click', '.btn-entregar', function () {
+            var detalleId = $(this).data('detalle');
+            var $row = $('#item-' + detalleId);
+
+            $.post('/Pedido/ConfirmarEntrega', { detalleId: detalleId, pedidoId: pedidoId }, function (res) {
+                if (res.success) {
+                    $row.fadeOut(300, function () { $(this).remove(); });
+                    if ($('#tablaItemsListos tr:visible').length === 0) {
+                        $('#itemsListosSection').fadeOut();
+                    }
+                } else {
+                    alert('Error: ' + res.message);
+                }
+            });
+        });
+
         $(function () {
-            var pedidoId = @Model.Pedido.IdPedido;
+            $('#buscarProducto').on('keyup', function () {
+                var q = $(this).val().toLowerCase();
+                $('.producto-card').each(function () {
+                    $(this).toggle($(this).data('nombre').indexOf(q) > -1);
+                });
+            });
+
+            $('#filtroCategorias button').on('click', function () {
+                $('#filtroCategorias button').removeClass('btn-primary').addClass('btn-outline-primary');
+                $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+
+                var cat = $(this).data('cat');
+                if (cat === 'todas') {
+                    $('.producto-card').show();
+                } else {
+                    $('.producto-card').each(function () {
+                        $(this).toggle($(this).data('categoria') == cat);
+                    });
+                }
+            });
+
             var pedidoHub = $.connection.pedidoHub;
 
             pedidoHub.client.actualizarPedido = function (id) {
                 if (id === pedidoId) setTimeout(function () { location.reload(); }, 500);
             };
-            pedidoHub.client.productoListo = function (id) {
-                if (id === pedidoId) setTimeout(function () { location.reload(); }, 500);
+
+            pedidoHub.client.detalleEstadoCambiado = function (idPedido, detalleId, nuevoEstado) {
+                if (idPedido !== pedidoId) return;
+                var $row = $('#detalle-' + detalleId);
+                if ($row.length === 0) return;
+
+                var cls = 'badge-';
+                if (nuevoEstado === 'Entregado') cls += 'entregado';
+                else if (nuevoEstado === 'Anulado') cls += 'anulado';
+                else if (nuevoEstado === 'Listo para servir') cls += 'listo-para-servir';
+                else if (nuevoEstado === 'En preparacion') cls += 'en-preparacion';
+                else cls += 'ingresado';
+
+                $row.find('.badge').removeClass().addClass('badge ' + cls).text(nuevoEstado);
+            };
+
+            pedidoHub.client.productoListo = function (detalleId, nombreProducto, cantidadMesero) {
+                var $existente = $('#item-' + detalleId);
+                if ($existente.length > 0) return;
+
+                var fila = '<tr id="item-' + detalleId + '">' +
+                    '<td>' + (nombreProducto || 'Producto') + '</td>' +
+                    '<td>' + (cantidadMesero || 1) + '</td>' +
+                    '<td></td>' +
+                    '<td><button class="btn btn-success btn-sm btn-entregar" data-detalle="' + detalleId + '">Entregar</button></td>' +
+                    '</tr>';
+                $('#tablaItemsListos').append(fila);
+                $('#itemsListosSection').removeClass('d-none');
             };
 
             $.connection.hub.start().done(function () {

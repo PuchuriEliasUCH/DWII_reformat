@@ -30,6 +30,11 @@ namespace AltaMesa.web.Services
             await _categoriaRepository.Desactivar(id).ConfigureAwait(false);
         }
 
+        public async Task<Dictionary<int, int>> ContarProductosPorCategoria()
+        {
+            return await _categoriaRepository.ContarProductosPorCategoria().ConfigureAwait(false);
+        }
+
         public async Task<List<CategoriaDTO>> Listar()
         {
             return await _categoriaRepository.Listar().ConfigureAwait(false);

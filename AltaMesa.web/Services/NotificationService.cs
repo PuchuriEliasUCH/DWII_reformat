@@ -32,11 +32,23 @@ namespace AltaMesa.web.Services
             hubContext.Clients.Group("cocina").actualizarDetalleCocina(detalleId);
         }
 
-        public void NotificarProductoListo(int pedidoId)
+        public void NotificarProductoListo(int pedidoId, int detalleId, string nombreProducto, int cantidad)
         {
             var hubContext = GlobalHost.ConnectionManager.GetHubContext<PedidoHub>();
-            hubContext.Clients.Group("pedidos").productoListo(pedidoId);
-            hubContext.Clients.Group("cocina").productoListo(pedidoId);
+            hubContext.Clients.Group("pedidos").productoListo(detalleId, nombreProducto, cantidad);
+            hubContext.Clients.Group("cocina").actualizarCocina();
+        }
+
+        public void NotificarProductoEntregado(int detalleId)
+        {
+            var hubContext = GlobalHost.ConnectionManager.GetHubContext<CocinaHub>();
+            hubContext.Clients.Group("cocina").productoEntregado(detalleId);
+        }
+
+        public void NotificarCambioEstadoDetalle(int pedidoId, int detalleId, string nuevoEstado)
+        {
+            var hubContext = GlobalHost.ConnectionManager.GetHubContext<PedidoHub>();
+            hubContext.Clients.Group("pedidos").detalleEstadoCambiado(pedidoId, detalleId, nuevoEstado);
         }
 
         public void NotificarPedidoCerrado(int pedidoId)

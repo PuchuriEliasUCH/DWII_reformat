@@ -9,14 +9,6 @@
     <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nuevo Pedido</a>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
 <div class="row g-3">
     @if (Model.Pedidos.Any())
     {
@@ -72,6 +64,7 @@
             var pedidoHub = $.connection.pedidoHub;
             pedidoHub.client.nuevoPedido = function () { location.reload(); };
             pedidoHub.client.actualizarPedido = function () { location.reload(); };
+            pedidoHub.client.nuevoDetalleCocina = function () { location.reload(); };
             pedidoHub.client.pedidoCerrado = function () { location.reload(); };
             $.connection.hub.start().done(function () {
                 pedidoHub.server.joinGroup();

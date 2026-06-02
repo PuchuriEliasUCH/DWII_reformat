@@ -6,61 +6,183 @@
 
 <div class="page-header">
     <h2>Mesas</h2>
-    <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nueva Mesa</a>
+    <div class="d-flex gap-2">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-sm @(ViewBag.Vista == "layout" ? "btn-primary" : "btn-outline-primary")" id="btnVistaLayout" title="Vista Layout">
+                <span>&#9632;</span> Plano
+            </button>
+            <button type="button" class="btn btn-sm @(ViewBag.Vista == "layout" ? "btn-outline-primary" : "btn-primary")" id="btnVistaTabla" title="Vista Tabla">
+                <span>&#9776;</span> Tabla
+            </button>
+        </div>
+        <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nueva Mesa</a>
+    </div>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+@* Layout View *@
+<div id="vistaLayout" class="@(ViewBag.Vista == "layout" ? "" : "d-none")">
+    <div class="row g-3">
+        @if (Model.Mesas.Any())
+        {
+            foreach (var m in Model.Mesas)
+            {
+                <div class="col-md-3 col-6">
+                    <div class="mesa-tile
+                        @(m.Estado == "Disponible" ? "mesa-tile-disponible" :
+                          m.Estado == "Ocupada" ? "mesa-tile-ocupada" :
+                          "mesa-tile-inhabilitada")">
+                        <div class="headline-sm fw-bold">Mesa @m.Numero</div>
+                        <div class="body-sm text-on-surface-variant">@m.Capacidad personas</div>
+                        <div class="label-sm mt-2">
+                            <span class="badge
+                                @(m.Estado == "Disponible" ? "badge-disponible" :
+                                  m.Estado == "Ocupada" ? "badge-ocupada" :
+                                  "badge-inhabilitada")">
+                                @m.Estado
+                            </span>
+                        </div>
+                        <div class="mt-2 d-flex gap-1 justify-content-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="abrirEditarMesa(@m.IdMesa)">Editar</button>
+                            @if (m.Estado == "Inhabilitada")
+                            {
+                                using (Html.BeginForm("Habilitar", "Mesa", new { id = m.IdMesa }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-secondary">Habilitar</button>
+                                }
+                            }
+                            else if (m.Estado != "Ocupada")
+                            {
+                                using (Html.BeginForm("Inhabilitar", "Mesa", new { id = m.IdMesa }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Inhabilitar esta mesa?')">Inhabilitar</button>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info">No hay mesas registradas</div>
+            </div>
+        }
     </div>
-}
+</div>
 
-<div class="card">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th style="width:8%">ID</th>
-                        <th style="width:20%">Número</th>
-                        <th style="width:22%">Capacidad</th>
-                        <th style="width:15%">Estado</th>
-                        <th style="width:15%">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.Mesas.Any())
-                    {
-                        foreach (var m in Model.Mesas)
+@* Data Grid View *@
+<div id="vistaTabla" class="@(ViewBag.Vista == "layout" ? "d-none" : "")">
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width:8%">ID</th>
+                            <th style="width:20%">Número</th>
+                            <th style="width:22%">Capacidad</th>
+                            <th style="width:15%">Estado</th>
+                            <th style="width:15%">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Mesas.Any())
+                        {
+                            foreach (var m in Model.Mesas)
+                            {
+                                <tr>
+                                    <td>@m.IdMesa</td>
+                                    <td><span class="fw-medium">Mesa @m.Numero</span></td>
+                                    <td>@m.Capacidad personas</td>
+                                    <td>
+                                        <span class="badge
+                                            @(m.Estado == "Disponible" ? "badge-disponible" :
+                                              m.Estado == "Ocupada" ? "badge-ocupada" :
+                                              "badge-inhabilitada")">
+                                            @m.Estado
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1 align-items-center">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="abrirEditarMesa(@m.IdMesa)">Editar</button>
+                                            @if (m.Estado == "Inhabilitada")
+                                            {
+                                                using (Html.BeginForm("Habilitar", "Mesa", new { id = m.IdMesa }, FormMethod.Post))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-secondary">Habilitar</button>
+                                                }
+                                            }
+                                            else if (m.Estado != "Ocupada")
+                                            {
+                                                using (Html.BeginForm("Inhabilitar", "Mesa", new { id = m.IdMesa }, FormMethod.Post))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Inhabilitar esta mesa?')">Inhabilitar</button>
+                                                }
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>@m.IdMesa</td>
-                                <td><span class="fw-medium">Mesa @m.Numero</span></td>
-                                <td>@m.Capacidad personas</td>
-                                <td>
-                                    <span class="badge
-                                        @(m.Estado == "Disponible" ? "badge-disponible" :
-                                          m.Estado == "Ocupada" ? "badge-ocupada" :
-                                          "badge-inhabilitada")">
-                                        @m.Estado
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="@Url.Action("Editar", new { id = m.IdMesa })" class="btn btn-sm btn-outline-primary">Editar</a>
-                                </td>
+                                <td colspan="5" class="text-center text-on-surface-variant py-4">No hay mesas registradas</td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="5" class="text-center text-on-surface-variant py-4">No hay mesas registradas</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+
+@Html.Partial("_EditarMesaModal")
+
+@section scripts {
+    <script>
+        function abrirEditarMesa(id) {
+            $.getJSON('@Url.Action("ObtenerMesaJson", "Mesa")', { id: id }, function (data) {
+                if (!data) return;
+                $('#editMesaId').val(data.IdMesa);
+                $('#editMesaNumero').val(data.Numero);
+                $('#editMesaCapacidad').val(data.Capacidad);
+                $('#editMesaEstado').val(data.Estado);
+                var modal = new bootstrap.Modal(document.getElementById('editarMesaModal'));
+                modal.show();
+            });
+        }
+
+        $('#formEditarMesa').on('submit', function (e) {
+            e.preventDefault();
+            var form = $(this);
+            $.post(form.attr('action'), form.serialize(), function () {
+                location.reload();
+            }).fail(function () {
+                mostrarToast('Error al guardar la mesa', 'error');
+            });
+        });
+
+        $(function () {
+            $('#btnVistaLayout').on('click', function () {
+                $('#vistaTabla').addClass('d-none');
+                $('#vistaLayout').removeClass('d-none');
+                $('#btnVistaLayout').removeClass('btn-outline-primary').addClass('btn-primary');
+                $('#btnVistaTabla').removeClass('btn-primary').addClass('btn-outline-primary');
+                $.get('@Url.Action("SetVista", "Mesa")?vista=layout');
+            });
+            $('#btnVistaTabla').on('click', function () {
+                $('#vistaLayout').addClass('d-none');
+                $('#vistaTabla').removeClass('d-none');
+                $('#btnVistaTabla').removeClass('btn-outline-primary').addClass('btn-primary');
+                $('#btnVistaLayout').removeClass('btn-primary').addClass('btn-outline-primary');
+                $.get('@Url.Action("SetVista", "Mesa")?vista=tabla');
+            });
+        });
+    </script>
+}

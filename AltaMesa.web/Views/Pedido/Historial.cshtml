@@ -1,0 +1,54 @@
+@model List<AltaMesa.web.DTOs.PedidoDTO>
+
+@{
+    ViewBag.Title = "Historial de Pedidos";
+}
+
+<div class="page-header">
+    <h2>Historial de Pedidos</h2>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width:8%">ID</th>
+                        <th style="width:10%">Mesa</th>
+                        <th style="width:18%">Mesero</th>
+                        <th style="width:12%">Subtotal</th>
+                        <th style="width:10%">Desc.</th>
+                        <th style="width:12%">Total</th>
+                        <th style="width:15%">Apertura</th>
+                        <th style="width:15%">Cierre</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var p in Model)
+                        {
+                            <tr>
+                                <td>@p.IdPedido</td>
+                                <td>Mesa @p.NumeroMesa</td>
+                                <td>@p.NombreMesero</td>
+                                <td>$@p.Subtotal.ToString("N2")</td>
+                                <td>$@p.Descuento.ToString("N2")</td>
+                                <td class="fw-bold">$@p.Total.ToString("N2")</td>
+                                <td>@p.FechaPedido.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@(p.FechaCierre?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-on-surface-variant py-4">No hay pedidos cerrados</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

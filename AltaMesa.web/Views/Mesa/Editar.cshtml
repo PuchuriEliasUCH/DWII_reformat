@@ -18,8 +18,9 @@
 
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label class="form-label">Número</label>
-                    <input type="text" class="form-control" value="Mesa @Model.Numero" disabled />
+                    @Html.LabelFor(m => m.Numero, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Numero, new { @class = "form-control", type = "number", min = 1 })
+                    @Html.ValidationMessageFor(m => m.Numero, "", new { @class = "text-danger" })
                 </div>
                 <div class="col-md-4 mb-3">
                     @Html.LabelFor(m => m.Capacidad, new { @class = "form-label" })

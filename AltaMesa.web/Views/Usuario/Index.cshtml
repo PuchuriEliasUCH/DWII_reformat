@@ -9,15 +9,14 @@
     <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nuevo Usuario</a>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
 <div class="card">
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <input type="text" id="buscarUsuario" class="form-control" placeholder="Buscar por nombre, correo o rol..." />
+            </div>
+        </div>
+    </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table">
@@ -77,3 +76,16 @@
         </div>
     </div>
 </div>
+
+@section scripts {
+    <script>
+        $(function () {
+            $('#buscarUsuario').on('keyup', function () {
+                var value = $(this).val().toLowerCase();
+                $('.table tbody tr').filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+        });
+    </script>
+}

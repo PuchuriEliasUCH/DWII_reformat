@@ -24,5 +24,20 @@ namespace AltaMesa.web.Services
         {
             return await _productoRepository.Listar().ConfigureAwait(false);
         }
+
+        public async Task<ProductoDTO> ObtenerPorId(int id)
+        {
+            return await _productoRepository.ObtenerPorId(id).ConfigureAwait(false);
+        }
+
+        public async Task Actualizar(ActualizarProductoDTO dto)
+        {
+            await _productoRepository.Actualizar(dto).ConfigureAwait(false);
+        }
+
+        public async Task Eliminar(int id)
+        {
+            await _productoRepository.Eliminar(id).ConfigureAwait(false);
+        }
     }
 }

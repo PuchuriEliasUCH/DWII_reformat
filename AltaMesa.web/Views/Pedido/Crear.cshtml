@@ -14,10 +14,55 @@
         {
             @Html.AntiForgeryToken()
             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            @Html.HiddenFor(m => m.Mesa, new { id = "mesaSeleccionada" })
 
             <div class="mb-3">
-                @Html.LabelFor(m => m.Mesa, new { @class = "form-label" })
-                @Html.DropDownListFor(m => m.Mesa, Model.Mesas, "Seleccione una mesa disponible", new { @class = "form-select" })
+                <label class="form-label">Seleccione una mesa</label>
+                <div class="row g-3" id="mesasGrid">
+                    @if (Model.Mesas.Any())
+                    {
+                        foreach (var mesa in Model.Mesas)
+                        {
+                            var parts = mesa.Value.Split('|');
+                            var idMesa = parts[0];
+                            var estado = parts.Length > 1 ? parts[1] : "Disponible";
+                            var isAvailable = estado == "Disponible";
+                            var tileClass = isAvailable ? "mesa-tile-disponible" : estado == "Ocupada" ? "mesa-tile-ocupada" : "mesa-tile-inhabilitada";
+                            var mesaNum = mesa.Text.Substring(0, mesa.Text.IndexOf('(')).Trim();
+                            var capacidad = mesa.Text.Substring(mesa.Text.IndexOf('(')).Trim('(', ')');
+                            <div class="col-md-3 col-6">
+                                <div class="mesa-tile @tileClass @(isAvailable ? "mesa-seleccionable" : "")"
+                                     data-mesa-id="@idMesa"
+                                     role="button"
+                                     tabindex="0"
+                                     style="@(isAvailable ? "cursor:pointer" : "cursor:not-allowed; opacity:0.6")">
+                                    <div class="headline-sm fw-bold">@mesaNum</div>
+                                    <div class="body-sm text-on-surface-variant">@capacidad</div>
+                                    <div class="label-sm mt-2">
+                                        @if (isAvailable)
+                                        {
+                                            <span class="badge badge-disponible">Disponible</span>
+                                        }
+                                        else if (estado == "Ocupada")
+                                        {
+                                            <span class="badge badge-ocupada">Ocupada</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-inhabilitada">Inhabilitada</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12">
+                            <div class="alert alert-info">No hay mesas disponibles</div>
+                        </div>
+                    }
+                </div>
                 @Html.ValidationMessageFor(m => m.Mesa, "", new { @class = "text-danger" })
             </div>
 
@@ -28,9 +73,21 @@
             </div>
 
             <div class="d-flex gap-2 mt-3">
-                <button type="submit" class="btn btn-primary">Crear Pedido</button>
+                <button type="submit" class="btn btn-primary" id="btnCrearPedido">Crear Pedido</button>
                 <a href="@Url.Action("Index")" class="btn btn-outline-primary">Cancelar</a>
             </div>
         }
     </div>
 </div>
+
+@section scripts {
+    <script>
+        $(function () {
+            $('.mesa-seleccionable').on('click', function () {
+                $('.mesa-seleccionable').removeClass('mesa-tile-seleccionada');
+                $(this).addClass('mesa-tile-seleccionada');
+                $('#mesaSeleccionada').val($(this).data('mesa-id'));
+            });
+        });
+    </script>
+}

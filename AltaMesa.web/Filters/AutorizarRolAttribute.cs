@@ -1,13 +1,19 @@
 using System;
+using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
 namespace AltaMesa.web.Filters
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
     public class AutorizarRolAttribute : AuthorizeAttribute
     {
-        public string Rol { get; set; }
+        private string _roles;
+        public string Rol
+        {
+            get => _roles;
+            set => _roles = value;
+        }
 
         protected override bool AuthorizeCore(HttpContextBase httpContext)
         {
@@ -19,8 +25,9 @@ namespace AltaMesa.web.Filters
 
             if (string.IsNullOrEmpty(Rol)) return true;
 
+            var roles = Rol.Split(',').Select(r => r.Trim());
             var usuarioRol = session["UsuarioRol"]?.ToString();
-            return string.Equals(usuarioRol, Rol, StringComparison.OrdinalIgnoreCase);
+            return roles.Any(r => string.Equals(usuarioRol, r, StringComparison.OrdinalIgnoreCase));
         }
 
         protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)

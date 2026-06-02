@@ -8,6 +8,7 @@ namespace AltaMesa.web.Services.Interfaces
     {
         Task Crear(CrearMesaDTO dto);
         Task<List<MesaDTO>> Listar();
+        Task<MesaDTO> ObtenerPorId(int id);
         Task Actualizar(ActualizarMesaDTO dto);
     }
 }

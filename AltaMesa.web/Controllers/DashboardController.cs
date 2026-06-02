@@ -38,7 +38,9 @@ namespace AltaMesa.web.Controllers
                 mesasDisponibles = vm.MesasDisponibles,
                 pedidosActivos = vm.PedidosActivos,
                 platosEnPreparacion = vm.PlatosEnPreparacion,
-                platosListos = vm.PlatosListos
+                platosListos = vm.PlatosListos,
+                ordenesDelDia = vm.OrdenesDelDia,
+                gananciasDelDia = vm.GananciasDelDia
             }, JsonRequestBehavior.AllowGet);
         }
 
@@ -47,6 +49,9 @@ namespace AltaMesa.web.Controllers
             var mesas = await _mesaService.Listar();
             var pedidos = await _pedidoService.ListarActivos();
             var colaCocina = await _pedidoService.ListarColaCocina();
+            var statsDia = await _pedidoService.ObtenerOrdenesDelDia();
+            var ventasSemana = await _pedidoService.ObtenerVentasSemana();
+            var masVendidos = await _pedidoService.ObtenerProductosMasVendidos();
 
             return new DashboardVM
             {
@@ -58,10 +63,14 @@ namespace AltaMesa.web.Controllers
                     c.EstadoDetalle == DetalleEstado.EnPreparacion),
                 PlatosListos = colaCocina.Count(c =>
                     c.EstadoDetalle == DetalleEstado.ListoParaServir),
+                OrdenesDelDia = statsDia.OrdenesDelDia,
+                GananciasDelDia = statsDia.GananciasDelDia,
                 UltimosPedidos = pedidos
                     .OrderByDescending(p => p.FechaPedido)
                     .Take(5)
-                    .ToList()
+                    .ToList(),
+                VentasSemana = ventasSemana,
+                ProductosMasVendidos = masVendidos
             };
         }
     }

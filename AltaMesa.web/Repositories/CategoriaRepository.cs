@@ -61,6 +61,26 @@ namespace AltaMesa.web.Repositories
             }
         }
 
+        public async Task<Dictionary<int, int>> ContarProductosPorCategoria()
+        {
+            var counts = new Dictionary<int, int>();
+            using (var conn = GetConnection())
+            using (var cmd = GetCommand(conn, "sp_contar_productos_por_categoria"))
+            {
+                await conn.OpenAsync().ConfigureAwait(false);
+                using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
+                {
+                    while (await reader.ReadAsync().ConfigureAwait(false))
+                    {
+                        var id = reader.GetInt32(reader.GetOrdinal("IdCategoria"));
+                        var count = reader.GetInt32(reader.GetOrdinal("CantidadProductos"));
+                        counts[id] = count;
+                    }
+                }
+            }
+            return counts;
+        }
+
         public async Task<List<CategoriaDTO>> Listar()
         {
             using (var ctx = new AltaMesaContext())

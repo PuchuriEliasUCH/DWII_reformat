@@ -51,11 +51,24 @@ namespace AltaMesa.web.Repositories
             using (var cmd = GetCommand(conn, "sp_actualizar_mesa"))
             {
                 cmd.Parameters.Add(new SqlParameter("@id", dto.Id));
+                cmd.Parameters.Add(new SqlParameter("@numero", dto.Numero));
                 cmd.Parameters.Add(new SqlParameter("@capacidad", dto.Capacidad));
                 cmd.Parameters.Add(new SqlParameter("@estado", dto.Estado));
 
                 await conn.OpenAsync().ConfigureAwait(false);
                 await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+            }
+        }
+
+        public async Task<MesaDTO> ObtenerPorId(int id)
+        {
+            using (var ctx = new AltaMesaContext())
+            {
+                return await ctx.Mesas
+                    .Where(m => m.IdMesa == id)
+                    .ProjectTo<MesaDTO>(_mapper.ConfigurationProvider)
+                    .FirstOrDefaultAsync()
+                    .ConfigureAwait(false);
             }
         }
     }

@@ -50,6 +50,27 @@ namespace AltaMesa.web.DTOs
         public string Obs { get; set; }
     }
 
+    public class ProductoMasVendidoDTO
+    {
+        public int IdProducto { get; set; }
+        public string NombreProducto { get; set; }
+        public int TotalVendido { get; set; }
+        public int CantidadTotal { get; set; }
+    }
+
+    public class VentaDiariaDTO
+    {
+        public DateTime Fecha { get; set; }
+        public int CantidadPedidos { get; set; }
+        public decimal TotalVentas { get; set; }
+    }
+
+    public class DashboardStatsDTO
+    {
+        public int OrdenesDelDia { get; set; }
+        public decimal GananciasDelDia { get; set; }
+    }
+
     public class CocinaDTO
     {
         public int IdDetallePedido { get; set; }

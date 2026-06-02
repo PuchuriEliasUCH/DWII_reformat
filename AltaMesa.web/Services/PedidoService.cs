@@ -3,7 +3,6 @@ using AltaMesa.web.Repositories.Interfaces;
 using AltaMesa.web.Services.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Transactions;
 
 namespace AltaMesa.web.Services
 {
@@ -21,9 +20,16 @@ namespace AltaMesa.web.Services
             return await _pedidoRepository.Crear(dto).ConfigureAwait(false);
         }
 
-        public async Task AgregarDetalle(AgregarDetalleDTO dto)
+        public async Task<int> AgregarDetalle(AgregarDetalleDTO dto, int usuarioId)
         {
-            await _pedidoRepository.AgregarDetalle(dto).ConfigureAwait(false);
+            var (idDetalle, requierePrep) = await _pedidoRepository.AgregarDetalle(dto).ConfigureAwait(false);
+
+            if (!requierePrep)
+            {
+                await _pedidoRepository.AvanzarSinPreparacion(idDetalle, usuarioId).ConfigureAwait(false);
+            }
+
+            return idDetalle;
         }
 
         public async Task AgregarAdicional(AgregarDetalleDTO dto)
@@ -51,20 +57,39 @@ namespace AltaMesa.web.Services
             return await _pedidoRepository.ObtenerDetalles(pedidoId).ConfigureAwait(false);
         }
 
+        public async Task<DashboardStatsDTO> ObtenerOrdenesDelDia()
+        {
+            return await _pedidoRepository.ObtenerOrdenesDelDia().ConfigureAwait(false);
+        }
+
+        public async Task<List<VentaDiariaDTO>> ObtenerVentasSemana()
+        {
+            return await _pedidoRepository.ObtenerVentasSemana().ConfigureAwait(false);
+        }
+
+        public async Task<List<ProductoMasVendidoDTO>> ObtenerProductosMasVendidos(int top = 5)
+        {
+            return await _pedidoRepository.ObtenerProductosMasVendidos(top).ConfigureAwait(false);
+        }
+
+        public async Task<List<PedidoDTO>> ListarCerrados()
+        {
+            return await _pedidoRepository.ListarCerrados().ConfigureAwait(false);
+        }
+
         public async Task<List<CocinaDTO>> ListarColaCocina()
         {
             return await _pedidoRepository.ListarColaCocina().ConfigureAwait(false);
         }
 
-        public async Task CambiarEstadoDetalle(int detalleId, string nuevoEstado, int usuarioId, string observacion = null)
+        public async Task CambiarEstadoDetalle(int detalleId, string nuevoEstado, int usuarioId)
         {
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                var estadoAnterior = await _pedidoRepository.ObtenerEstadoDetalle(detalleId).ConfigureAwait(false);
-                await _pedidoRepository.CambiarEstadoDetalle(detalleId, nuevoEstado).ConfigureAwait(false);
-                await _pedidoRepository.RegistrarAuditoria(detalleId, estadoAnterior, nuevoEstado, usuarioId, observacion).ConfigureAwait(false);
-                scope.Complete();
-            }
+            await _pedidoRepository.CambiarEstadoDetalle(detalleId, nuevoEstado, usuarioId).ConfigureAwait(false);
+        }
+
+        public async Task<List<DetallePedidoDTO>> ObtenerItemsListosMesero(int pedidoId)
+        {
+            return await _pedidoRepository.ObtenerItemsListosMesero(pedidoId).ConfigureAwait(false);
         }
     }
 }

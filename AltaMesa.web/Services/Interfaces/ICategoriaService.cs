@@ -10,5 +10,6 @@ namespace AltaMesa.web.Services.Interfaces
         Task Actualizar(ActualizarCategoriaDTO dto);
         Task Desactivar(int id);
         Task<List<CategoriaDTO>> Listar();
+        Task<Dictionary<int, int>> ContarProductosPorCategoria();
     }
 }

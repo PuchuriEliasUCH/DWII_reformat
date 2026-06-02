@@ -61,6 +61,9 @@ namespace AltaMesa.web.App_Start
 
             CreateMap<MesaDTO, MesaEditarVM>();
 
+            CreateMap<ProductoDTO, ProductoEditarVM>()
+                .ForMember(d => d.Categoria, o => o.MapFrom(s => s.IdCategoria));
+
             CreateMap<ProductoDTO, ProductoCrearVM>()
                 .ForMember(d => d.Categoria, o => o.MapFrom(s => s.IdCategoria))
                 .ForMember(d => d.Nombre, o => o.MapFrom(s => s.Nombre))
@@ -90,11 +93,13 @@ namespace AltaMesa.web.App_Start
                 .ForMember(d => d.Estado, o => o.MapFrom(s => s.Estado));
 
             CreateMap<ProductoCrearVM, CrearProductoDTO>();
+            CreateMap<ProductoEditarVM, ActualizarProductoDTO>();
 
             CreateMap<MesaCrearVM, CrearMesaDTO>();
 
             CreateMap<MesaEditarVM, ActualizarMesaDTO>()
-                .ForMember(d => d.Id, o => o.MapFrom(s => s.IdMesa));
+                .ForMember(d => d.Id, o => o.MapFrom(s => s.IdMesa))
+                .ForMember(d => d.Numero, o => o.MapFrom(s => s.Numero));
 
             CreateMap<PedidoCrearVM, CrearPedidoDTO>();
 
@@ -102,6 +107,8 @@ namespace AltaMesa.web.App_Start
                 .ForMember(d => d.Pedido, o => o.MapFrom(s => s.Pedido.IdPedido));
 
             CreateMap<ActualizarCategoriaDTO, CategoriaProducto>();
+
+            CreateMap<DetallePedidoDTO, DetalleItemVM>();
 
             #endregion
         }

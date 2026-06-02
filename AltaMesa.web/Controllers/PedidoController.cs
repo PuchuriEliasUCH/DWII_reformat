@@ -4,18 +4,20 @@ using AltaMesa.web.Helpers;
 using AltaMesa.web.Models.ViewModels;
 using AltaMesa.web.Services.Interfaces;
 using AutoMapper;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace AltaMesa.web.Controllers
 {
-    [AutorizarRol]
+    [AutorizarRol(Rol = "admin, mesero")]
     public class PedidoController : Controller
     {
         private readonly IPedidoService _pedidoService;
         private readonly IMesaService _mesaService;
         private readonly IProductoService _productoService;
+        private readonly ICategoriaService _categoriaService;
         private readonly INotificationService _notificationService;
         private readonly IMapper _mapper;
 
@@ -23,12 +25,14 @@ namespace AltaMesa.web.Controllers
             IPedidoService pedidoService,
             IMesaService mesaService,
             IProductoService productoService,
+            ICategoriaService categoriaService,
             INotificationService notificationService,
             IMapper mapper)
         {
             _pedidoService = pedidoService;
             _mesaService = mesaService;
             _productoService = productoService;
+            _categoriaService = categoriaService;
             _notificationService = notificationService;
             _mapper = mapper;
         }
@@ -48,10 +52,9 @@ namespace AltaMesa.web.Controllers
             var vm = new PedidoCrearVM
             {
                 Mesas = mesas
-                    .Where(m => m.Estado == "Disponible")
                     .Select(m => new SelectListItem
                     {
-                        Value = m.IdMesa.ToString(),
+                        Value = m.IdMesa + "|" + m.Estado,
                         Text = "Mesa " + m.Numero + " (" + m.Capacidad + " pers.)"
                     }).ToList()
             };
@@ -64,12 +67,11 @@ namespace AltaMesa.web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var mesasDisponibles = await _mesaService.Listar();
-                model.Mesas = mesasDisponibles
-                    .Where(m => m.Estado == "Disponible")
+                var listaMesas = await _mesaService.Listar();
+                model.Mesas = listaMesas
                     .Select(m => new SelectListItem
                     {
-                        Value = m.IdMesa.ToString(),
+                        Value = m.IdMesa + "|" + m.Estado,
                         Text = "Mesa " + m.Numero + " (" + m.Capacidad + " pers.)"
                     }).ToList();
                 return View(model);
@@ -94,7 +96,13 @@ namespace AltaMesa.web.Controllers
             var pedido = await _pedidoService.ObtenerPedido(id);
             if (pedido == null) return HttpNotFound();
 
+            var detalles = await _pedidoService.ObtenerDetalles(id);
+            pedido.Detalles = detalles;
+
             var productos = await _productoService.Listar();
+            var categorias = await _categoriaService.Listar();
+            var itemsListos = await _pedidoService.ObtenerItemsListosMesero(id);
+
             var vm = new PedidoDetalleVM
             {
                 Pedido = pedido,
@@ -104,7 +112,10 @@ namespace AltaMesa.web.Controllers
                     {
                         Value = p.IdProducto.ToString(),
                         Text = p.Nombre + " - $" + p.Precio
-                    }).ToList()
+                    }).ToList(),
+                ProductosConInfo = productos.Where(p => p.Estado).ToList(),
+                Categorias = categorias.Where(c => c.Estado).ToList(),
+                ItemsListos = _mapper.Map<List<DetalleItemVM>>(itemsListos)
             };
             return View(vm);
         }
@@ -116,25 +127,85 @@ namespace AltaMesa.web.Controllers
             if (!ModelState.IsValid)
                 return RedirectToAction("Detalle", new { id = model.Pedido.IdPedido });
 
-            await _pedidoService.AgregarDetalle(_mapper.Map<AgregarDetalleDTO>(model));
+            var usuarioId = SessionHelper.GetUsuarioId().GetValueOrDefault();
+            var idDetalle = await _pedidoService.AgregarDetalle(_mapper.Map<AgregarDetalleDTO>(model), usuarioId);
 
-            var productos = await _productoService.Listar();
-            var producto = productos.FirstOrDefault(p => p.IdProducto == model.Producto);
-            var tienePreparacion = producto != null && producto.RequierePreparacion;
-
-            if (tienePreparacion)
+            var pedido = await _pedidoService.ObtenerPedido(model.Pedido.IdPedido);
+            if (pedido != null)
             {
-                var pedido = await _pedidoService.ObtenerPedido(model.Pedido.IdPedido);
                 var detalles = await _pedidoService.ObtenerDetalles(model.Pedido.IdPedido);
-                var nuevoDetalle = detalles.FirstOrDefault(d => d.IdProducto == model.Producto);
-                if (nuevoDetalle != null && pedido != null)
-                    _notificationService.NotificarNuevoDetalleCocina(nuevoDetalle.IdDetallePedido, pedido.NumeroMesa);
+                var nuevoDetalle = detalles.FirstOrDefault(d => d.IdDetallePedido == idDetalle);
+                if (nuevoDetalle != null)
+                {
+                    if (nuevoDetalle.EstadoDetalle == "Listo para servir")
+                    {
+                        _notificationService.NotificarProductoListo(model.Pedido.IdPedido, idDetalle, nuevoDetalle.NombreProducto, nuevoDetalle.Cantidad);
+                    }
+                    else
+                    {
+                        _notificationService.NotificarNuevoDetalleCocina(idDetalle, pedido.NumeroMesa);
+                    }
+                }
+                _notificationService.NotificarActualizarPedido(model.Pedido.IdPedido);
             }
-
-            _notificationService.NotificarActualizarPedido(model.Pedido.IdPedido);
 
             TempData["Success"] = "Producto agregado al pedido";
             return RedirectToAction("Detalle", new { id = model.Pedido.IdPedido });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> AgregarAdicional(PedidoDetalleVM model)
+        {
+            if (!ModelState.IsValid)
+                return RedirectToAction("Detalle", new { id = model.Pedido.IdPedido });
+
+            await _pedidoService.AgregarAdicional(_mapper.Map<AgregarDetalleDTO>(model));
+
+            var pedido = await _pedidoService.ObtenerPedido(model.Pedido.IdPedido);
+            if (pedido != null)
+            {
+                var detalles = await _pedidoService.ObtenerDetalles(model.Pedido.IdPedido);
+                var nuevoDetalle = detalles.OrderByDescending(d => d.IdDetallePedido).FirstOrDefault(d => d.IdProducto == model.Producto);
+                if (nuevoDetalle != null)
+                    _notificationService.NotificarNuevoDetalleCocina(nuevoDetalle.IdDetallePedido, pedido.NumeroMesa);
+                _notificationService.NotificarActualizarPedido(model.Pedido.IdPedido);
+            }
+
+            TempData["Success"] = "Adicional agregado al pedido";
+            return RedirectToAction("Detalle", new { id = model.Pedido.IdPedido });
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> ObtenerItemsListos(int pedidoId)
+        {
+            var items = await _pedidoService.ObtenerItemsListosMesero(pedidoId);
+            return Json(items, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> ConfirmarEntrega(int detalleId, int pedidoId)
+        {
+            try
+            {
+                var usuarioId = SessionHelper.GetUsuarioId().GetValueOrDefault();
+                await _pedidoService.CambiarEstadoDetalle(detalleId, "Entregado", usuarioId);
+
+                _notificationService.NotificarActualizarPedido(pedidoId);
+                _notificationService.NotificarProductoEntregado(detalleId);
+
+                return Json(new { success = true });
+            }
+            catch (System.Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message + " | " + ex.InnerException?.Message });
+            }
+        }
+
+        public async Task<ActionResult> Historial()
+        {
+            var pedidos = await _pedidoService.ListarCerrados();
+            return View(pedidos);
         }
 
         [HttpPost]

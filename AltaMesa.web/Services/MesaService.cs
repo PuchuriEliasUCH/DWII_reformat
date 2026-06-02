@@ -25,6 +25,11 @@ namespace AltaMesa.web.Services
             return await _mesaRepository.Listar().ConfigureAwait(false);
         }
 
+        public async Task<MesaDTO> ObtenerPorId(int id)
+        {
+            return await _mesaRepository.ObtenerPorId(id).ConfigureAwait(false);
+        }
+
         public async Task Actualizar(ActualizarMesaDTO dto)
         {
             await _mesaRepository.Actualizar(dto).ConfigureAwait(false);

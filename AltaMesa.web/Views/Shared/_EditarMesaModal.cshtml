@@ -1,0 +1,42 @@
+<div class="modal fade" id="editarMesaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            @using (Html.BeginForm("Editar", "Mesa", FormMethod.Post, new { id = "formEditarMesa" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="IdMesa" id="editMesaId" />
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Mesa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Número</label>
+                        <input type="number" name="Numero" id="editMesaNumero" class="form-control" required min="1" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Capacidad</label>
+                        <select name="Capacidad" id="editMesaCapacidad" class="form-select">
+                            <option value="2">2 personas</option>
+                            <option value="4">4 personas</option>
+                            <option value="6">6 personas</option>
+                            <option value="8">8 personas</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <select name="Estado" id="editMesaEstado" class="form-select">
+                            <option value="Disponible">Disponible</option>
+                            <option value="Ocupada">Ocupada</option>
+                            <option value="Inhabilitada">Inhabilitada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>

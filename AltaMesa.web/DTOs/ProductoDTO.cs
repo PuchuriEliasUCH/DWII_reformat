@@ -22,4 +22,15 @@ namespace AltaMesa.web.DTOs
         public decimal Precio { get; set; }
         public bool Prep { get; set; }
     }
+
+    public class ActualizarProductoDTO
+    {
+        public int IdProducto { get; set; }
+        public int Categoria { get; set; }
+        public string Nombre { get; set; }
+        public string Corta { get; set; }
+        public string Larga { get; set; }
+        public decimal Precio { get; set; }
+        public bool Prep { get; set; }
+    }
 }

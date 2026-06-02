@@ -5,106 +5,103 @@
 }
 
 <div class="page-header">
-    <h2>Cocina</h2>
+    <h2 class="headline-md">Cocina</h2>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
 <div class="row g-3">
-    <div class="col-md-7">
+    <div class="col-md-4">
         <div class="card mb-4">
-            <div class="card-header section-header-preparacion">
-                <h5 class="headline-sm mb-0">En Preparación</h5>
+            <div class="card-header section-header-ingresados">
+                <h5 class="headline-sm mb-0">Ingresados</h5>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th style="width:35%">Producto</th>
-                                <th style="width:10%">Cant.</th>
-                                <th style="width:15%">Mesa</th>
-                                <th style="width:20%">Obs.</th>
-                                <th style="width:15%">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.ColaCocina.Any())
-                            {
-                                foreach (var item in Model.ColaCocina)
+            <div class="card-body">
+                @if (Model.NuevosItems.Any())
+                {
+                    foreach (var item in Model.NuevosItems)
+                    {
+                        <div class="card mb-3 kanban-card kanban-ingresado" id="detalle-@item.IdDetallePedido">
+                            <div class="card-body">
+                                <div class="headline-sm">Mesa @item.NumeroMesa</div>
+                                <p class="body-md mb-1">@item.NombreProducto × @item.Cantidad</p>
+                                @if (!string.IsNullOrEmpty(item.Observacion))
                                 {
-                                    <tr>
-                                        <td class="fw-medium">@item.NombreProducto</td>
-                                        <td>@item.Cantidad</td>
-                                        <td>Mesa @item.NumeroMesa</td>
-                                        <td class="body-sm text-on-surface-variant">@item.Observacion</td>
-                                        <td>
-                                            @using (Html.BeginForm("CambiarEstado", "Cocina", FormMethod.Post))
-                                            {
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="detalleId" value="@item.IdDetallePedido" />
-                                                <input type="hidden" name="estado" value="Listo para servir" />
-                                                <button type="submit" class="btn btn-sm btn-secondary">Listo</button>
-                                            }
-                                        </td>
-                                    </tr>
+                                    <p class="body-sm text-on-surface-variant mb-2">@item.Observacion</p>
                                 }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="5" class="text-center text-on-surface-variant py-4">No hay productos en preparación</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                                <button class="btn btn-primary btn-sm mt-2 btn-cambiar-estado"
+                                        data-detalle="@item.IdDetallePedido"
+                                        data-estado="En preparacion">
+                                    Iniciar preparación
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-center text-on-surface-variant py-4 body-sm">No hay items nuevos</p>
+                }
             </div>
         </div>
     </div>
 
-    <div class="col-md-5">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header section-header-preparacion">
+                <h5 class="headline-sm mb-0">En preparación</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.EnPreparacion.Any())
+                {
+                    foreach (var item in Model.EnPreparacion)
+                    {
+                        <div class="card mb-3 kanban-card kanban-preparacion" id="detalle-@item.IdDetallePedido">
+                            <div class="card-body">
+                                <div class="headline-sm">Mesa @item.NumeroMesa</div>
+                                <p class="body-md mb-1">@item.NombreProducto × @item.Cantidad</p>
+                                @if (!string.IsNullOrEmpty(item.Observacion))
+                                {
+                                    <p class="body-sm text-on-surface-variant mb-2">@item.Observacion</p>
+                                }
+                                <button class="btn btn-secondary btn-sm mt-2 btn-cambiar-estado"
+                                        data-detalle="@item.IdDetallePedido"
+                                        data-estado="Listo para servir">
+                                    Marcar listo
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-center text-on-surface-variant py-4 body-sm">No hay productos en preparación</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
         <div class="card mb-4">
             <div class="card-header section-header-listo">
-                <h5 class="headline-sm mb-0">Listos para Servir</h5>
+                <h5 class="headline-sm mb-0">Listo para servir</h5>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th style="width:50%">Producto</th>
-                                <th style="width:20%">Cant.</th>
-                                <th style="width:30%">Mesa</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.ProductosListos.Any())
-                            {
-                                foreach (var item in Model.ProductosListos)
-                                {
-                                    <tr>
-                                        <td class="fw-medium">@item.NombreProducto</td>
-                                        <td>@item.Cantidad</td>
-                                        <td>Mesa @item.NumeroMesa</td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="3" class="text-center text-on-surface-variant py-4">No hay productos listos</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+            <div class="card-body">
+                @if (Model.ProductosListos.Any())
+                {
+                    foreach (var item in Model.ProductosListos)
+                    {
+                        <div class="card mb-3 kanban-card kanban-listo" id="detalle-@item.IdDetallePedido">
+                            <div class="card-body">
+                                <div class="headline-sm">Mesa @item.NumeroMesa</div>
+                                <p class="body-md mb-1">@item.NombreProducto × @item.Cantidad</p>
+                                <span class="badge badge-listo-para-servir">Esperando mesero</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-center text-on-surface-variant py-4 body-sm">No hay productos listos</p>
+                }
             </div>
         </div>
     </div>
@@ -112,10 +109,27 @@
 
 @section scripts {
     <script>
+        $(document).on('click', '.btn-cambiar-estado', function () {
+            var btn = $(this);
+            var detalleId = btn.data('detalle');
+            var estado = btn.data('estado');
+
+            $.post('/Cocina/CambiarEstado', { detalleId: detalleId, estado: estado }, function (res) {
+                if (!res.success) alert('Error al cambiar estado: ' + res.message);
+            });
+        });
+
         $(function () {
             var cocinaHub = $.connection.cocinaHub;
+
             cocinaHub.client.nuevoDetalleCocina = function () { location.reload(); };
             cocinaHub.client.actualizarDetalleCocina = function () { location.reload(); };
+            cocinaHub.client.actualizarCocina = function () { location.reload(); };
+
+            cocinaHub.client.productoEntregado = function (detalleId) {
+                $('#detalle-' + detalleId).fadeOut(300, function () { $(this).remove(); });
+            };
+
             $.connection.hub.start().done(function () {
                 cocinaHub.server.joinGroup();
             });

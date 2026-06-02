@@ -1,4 +1,4 @@
-@model List<AltaMesa.web.DTOs.CategoriaDTO>
+@model AltaMesa.web.Models.ViewModels.CategoriaIndexVM
 
 @{
     ViewBag.Title = "Categorías";
@@ -9,70 +9,81 @@
     <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nueva Categoría</a>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-<div class="card">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th style="width:5%">ID</th>
-                        <th style="width:18%">Nombre</th>
-                        <th style="width:32%">Descripción</th>
-                        <th style="width:10%">Estado</th>
-                        <th style="width:35%">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.Any())
-                    {
-                        foreach (var c in Model)
-                        {
-                            <tr>
-                                <td>@c.IdCategoria</td>
-                                <td class="fw-medium">@c.Nombre</td>
-                                <td>@c.Descripcion</td>
-                                <td>
-                                    @if (c.Estado)
-                                    {
-                                        <span class="badge badge-activo">Activo</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge badge-inactivo">Inactivo</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-1 align-items-center">
-                                        <a href="@Url.Action("Editar", new { id = c.IdCategoria })" class="btn btn-sm btn-outline-primary">Editar</a>
-                                        @if (c.Estado)
-                                        {
-                                            using (Html.BeginForm("Desactivar", "Categoria", new { id = c.IdCategoria }, FormMethod.Post))
-                                            {
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Desactivar esta categoría?')">Desactivar</button>
-                                            }
-                                        }
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="5" class="text-center text-on-surface-variant py-4">No hay categorías registradas</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+<div class="row g-3">
+    @if (Model.Categorias.Any())
+    {
+        foreach (var c in Model.Categorias)
+        {
+            var prodCount = Model.ConteoProductos != null && Model.ConteoProductos.ContainsKey(c.IdCategoria)
+                ? Model.ConteoProductos[c.IdCategoria] : 0;
+            <div class="col-md-4 col-lg-3">
+                <div class="card categoria-card h-100 @(!c.Estado ? "opacity-50" : "")">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="headline-sm mb-0">@c.Nombre</h5>
+                            @if (c.Estado)
+                            {
+                                <span class="badge badge-activo">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-inactivo">Inactivo</span>
+                            }
+                        </div>
+                        <p class="body-md text-on-surface-variant mb-3">@c.Descripcion</p>
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="badge badge-activo me-2">@prodCount</span>
+                            <small class="text-on-surface-variant">productos</small>
+                        </div>
+                        <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="abrirEditarCategoria(@c.IdCategoria)">Editar</button>
+                            @if (c.Estado)
+                            {
+                                using (Html.BeginForm("Desactivar", "Categoria", new { id = c.IdCategoria }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Desactivar esta categoría?')">Desactivar</button>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center text-on-surface-variant py-4">
+                    No hay categorías registradas
+                </div>
+            </div>
         </div>
-    </div>
+    }
 </div>
+
+@Html.Partial("_EditarCategoriaModal")
+
+<script>
+    function abrirEditarCategoria(id) {
+        $.getJSON('@Url.Action("ObtenerCategoriaJson", "Categoria")', { id: id }, function (data) {
+            if (!data) return;
+            $('#editCatId').val(data.IdCategoria);
+            $('#editCatNombre').val(data.Nombre);
+            $('#editCatDescripcion').val(data.Descripcion);
+            var modal = new bootstrap.Modal(document.getElementById('editarCategoriaModal'));
+            modal.show();
+        });
+    }
+
+    $('#formEditarCategoria').on('submit', function (e) {
+        e.preventDefault();
+        var form = $(this);
+        $.post(form.attr('action'), form.serialize(), function () {
+            location.reload();
+        }).fail(function () {
+            mostrarToast('Error al guardar la categoría', 'error');
+        });
+    });
+</script>

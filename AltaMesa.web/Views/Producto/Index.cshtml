@@ -9,14 +9,6 @@
     <a href="@Url.Action("Crear")" class="btn btn-primary">+ Nuevo Producto</a>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -24,11 +16,12 @@
                 <thead>
                     <tr>
                         <th style="width:8%">ID</th>
-                        <th style="width:27%">Nombre</th>
-                        <th style="width:20%">Categoría</th>
-                        <th style="width:12%">Precio</th>
-                        <th style="width:10%">Prep.</th>
+                        <th style="width:22%">Nombre</th>
+                        <th style="width:17%">Categoría</th>
+                        <th style="width:10%">Precio</th>
+                        <th style="width:8%">Prep.</th>
                         <th style="width:10%">Estado</th>
+                        <th style="width:15%">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -61,13 +54,23 @@
                                         <span class="badge badge-inactivo">Inactivo</span>
                                     }
                                 </td>
+                                <td>
+                                    <div class="d-flex gap-1 align-items-center">
+                                        <a href="@Url.Action("Editar", new { id = p.IdProducto })" class="btn btn-sm btn-outline-primary">Editar</a>
+                                        @using (Html.BeginForm("Eliminar", "Producto", new { id = p.IdProducto }, FormMethod.Post))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Desactivar este producto?')">Desactivar</button>
+                                        }
+                                    </div>
+                                </td>
                             </tr>
                         }
                     }
                     else
                     {
                         <tr>
-                            <td colspan="6" class="text-center text-on-surface-variant py-4">No hay productos registrados</td>
+                            <td colspan="7" class="text-center text-on-surface-variant py-4">No hay productos registrados</td>
                         </tr>
                     }
                 </tbody>

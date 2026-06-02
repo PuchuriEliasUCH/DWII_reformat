@@ -111,12 +111,12 @@
   --stack-lg: 24px;
   --section-gap: 40px;
   /* Border Radius */
-  --radius-sm: 10px;
-  --radius-default: 10px;
-  --radius-md: 10px;
-  --radius-lg: 10px;
-  --radius-xl: 10px;
-  --radius-full: 10px;
+  --radius-sm: 0.25rem;
+  --radius-default: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
 }
 
 /* Dark mode */
@@ -195,7 +195,7 @@
   --status-on-cancelled: #690005;
   --status-cancelled-container: #93000a;
   --status-on-cancelled-container: #ffdad6;
-  --shadow-soft: rgba(0, 0, 0, 0.3);
+  --shadow-soft: rgba(0, 0, 0, 0.4);
   --shadow-deep: rgba(0, 0, 0, 0.5);
 }
 
@@ -318,6 +318,13 @@ body {
   align-items: center;
   gap: 10px;
   transition: background-color 0.15s, color 0.15s;
+  text-decoration: none;
+}
+.sidebar .nav-icon {
+  flex-shrink: 0;
+}
+.sidebar .nav-text {
+  white-space: nowrap;
 }
 .sidebar .nav-link:hover {
   background-color: var(--surface-container-high);
@@ -829,7 +836,12 @@ body {
   min-height: 100vh;
 }
 
-/* Koki section headers */
+/* Kanban column headers — Cocina */
+.section-header-ingresados {
+  background-color: var(--status-new-order-container);
+  color: var(--status-on-new-order-container);
+  border-bottom: 2px solid var(--status-new-order);
+}
 .section-header-preparacion {
   background-color: var(--status-preparing-container);
   color: var(--status-on-preparing-container);
@@ -840,6 +852,25 @@ body {
   color: var(--status-on-success-container);
   border-bottom: 2px solid var(--status-success);
 }
+
+/* Kanban cards — 4px left border in status color */
+.kanban-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+.kanban-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  z-index: 1;
+}
+.kanban-card.kanban-ingresado::before { background-color: var(--status-new-order); }
+.kanban-card.kanban-preparacion::before { background-color: var(--status-preparing); }
+.kanban-card.kanban-listo::before { background-color: var(--status-success); }
 
 /* Badge base override */
 .badge {
@@ -904,6 +935,13 @@ body {
     justify-content: center;
     gap: 2px;
   }
+  .sidebar .nav-text {
+    display: none;
+  }
+  .sidebar .nav-icon {
+    width: 22px;
+    height: 22px;
+  }
   .sidebar .nav-link.active {
     border-left: none;
     border-top: 3px solid var(--primary);
@@ -967,4 +1005,157 @@ body {
     margin: 0 auto;
     width: 100%;
   }
+}
+
+/* ============================================================
+   FASE 6 — MODERNIZACIÓN VISUAL
+   Micro-interacciones y refinamientos
+   ============================================================ */
+
+/* Fade-in del contenido */
+.main-content-body {
+  animation: fadeInContent 0.3s ease;
+}
+
+@keyframes fadeInContent {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Transiciones suaves en elementos interactivos */
+.card,
+.counter-card,
+.mesa-tile,
+.btn,
+a,
+.badge,
+.nav-link,
+.theme-toggle {
+  transition: all 0.2s ease;
+}
+
+/* Hover elevación en cards */
+.card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.counter-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.mesa-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Botones con feedback sutil */
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Nav links con indicador activo */
+.nav-link {
+  position: relative;
+  border-radius: 8px;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--primary);
+  transition: all 0.25s ease;
+  transform: translateX(-50%);
+}
+
+.nav-link:hover::after,
+.nav-link:focus::after {
+  width: 60%;
+}
+
+/* Focus visibles accesibles */
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Animación para toasts */
+.toast {
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Modal con fade mejorado */
+.modal.fade .modal-dialog {
+  transform: scale(0.95);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.modal.show .modal-dialog {
+  transform: scale(1);
+}
+
+/* Badge con efecto sutil */
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Tabla con filas interactivas */
+.table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.table tbody tr:hover {
+  background: var(--surface-container-low);
+}
+
+/* Scrollbar elegante */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--outline);
+}
+
+/* Spinner de carga */
+.spinner-altamesa {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--outline-variant);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

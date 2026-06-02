@@ -14,8 +14,8 @@ GO
 INSERT INTO usuario (id_rol, nombre_usuario, apellido_usuario, correo_usuario, contra_hash)
 VALUES
     (1, 'Admin',    'Sistema',   'admin@altamesa.com',   '$2a$11$.CBAMosx0z9xqO9ltKTweOmRQypwZSvoTIV4BytZKRpuI9cUq1piK'),
-    (2, 'Mesero',   'Principal', 'mesero@altamesa.com',  '$2a$11$2tKknoH1kdzfZ21vz3uRTuXlmyemJR/y8MGO7ts92.6f1tVONTfnK'),
-    (3, 'Chef',     'Cocina',    'chef@altamesa.com',    '$2a$11$NIpIkMHmspfldeD5tk6xb.iMZ8n23nAMjTVY/JqzD6NfyAH9cMwa2');
+    (2, 'Mesero',   'Principal', 'mesero@altamesa.com',  '$2b$11$10Nxa4qk7koxGqgHEeEeTemi9d1vPSOZwnpSgPC24HWkgYtvk9DTK'),
+    (3, 'Chef',     'Cocina',    'chef@altamesa.com',    '$2b$11$10Nxa4qk7koxGqgHEeEeTeTPenDETuIW1SxTU9ICTV.kqEyinqAkK');
 GO
 
 INSERT INTO categoria_producto (nombre, descripcion)
@@ -80,4 +80,23 @@ INSERT INTO producto (id_categoria, nombre, desc_corta, desc_completa, precio, r
 SELECT id_categoria, 'Tres Leches','Postre clásico',      'Bizcocho húmedo con tres leches', 12.90, 0 FROM categoria_producto WHERE nombre='Postres';
 INSERT INTO producto (id_categoria, nombre, desc_corta, desc_completa, precio, requiere_preparacion)
 SELECT id_categoria, 'Brownie',    'Chocolate artesanal', 'Brownie acompañado de salsa',     11.90, 0 FROM categoria_producto WHERE nombre='Postres';
+GO
+
+/* MESAS */
+INSERT INTO mesa (numero, capacidad) VALUES
+    (1, 2),
+    (2, 2),
+    (3, 2),
+    (4, 2),
+    (5, 4),
+    (6, 4),
+    (7, 4),
+    (8, 4),
+    (9, 4),
+    (10, 6),
+    (11, 6),
+    (12, 6),
+    (13, 8),
+    (14, 8),
+    (15, 8);
 GO
